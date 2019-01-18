@@ -59,7 +59,7 @@ function dh_manageapp_permission()
 	$perms['manage referral list'] = array('title' => t('Manage referral list'));
 	$perms['delete referral list'] = array('title' => t('Delete referral list'));
 	$perms['access other center courses'] = array('title' => t('Access other center course list'));
-
+	
 
 	return $perms;
 }
@@ -368,6 +368,17 @@ function dh_manageapp_menu()
 	       'access arguments' => array('access content'),
 	       'type' => MENU_CALLBACK);
 
+	$items['report/%centre_id'] = array( 'title' => t('Statistics Report'),
+	       'page arguments' => array('dh_manageapp_report_form'),
+	       'page callback' => 'drupal_get_form',
+	       'access arguments' => array('access all centres'),
+	       'type' => MENU_LOCAL_TASK);
+
+	$items['search-app'] = array( 'title' => t('Search'),
+           'page arguments' => array('dh_manageapp_search_form'),
+	       'page callback' => 'drupal_get_form',
+	       'access arguments' => array('access all centres'),
+	       'type' => MENU_LOCAL_TASK);
 	return $items;
 }
 
