@@ -368,17 +368,17 @@ function dh_manageapp_menu()
 	       'access arguments' => array('access content'),
 	       'type' => MENU_CALLBACK);
 
-	$items['report/%centre_id'] = array( 'title' => t('Statistics Report'),
+	$items['report/%centre_id'] = array( 'title' => t('Statistics'),
 	       'page arguments' => array('dh_manageapp_report_form'),
 	       'page callback' => 'drupal_get_form',
 	       'access arguments' => array('access all centres'),
 	       'type' => MENU_LOCAL_TASK);
 
-	$items['search-app'] = array( 'title' => t('Search'),
-           'page arguments' => array('dh_manageapp_search_form'),
-	       'page callback' => 'drupal_get_form',
-	       'access arguments' => array('access all centres'),
-	       'type' => MENU_LOCAL_TASK);
+	// $items['search-app'] = array( 'title' => t('Search'),
+ //           'page arguments' => array('dh_manageapp_search_form'),
+	//        'page callback' => 'drupal_get_form',
+	//        'access arguments' => array('access all centres'),
+	//        'type' => MENU_LOCAL_TASK);
 	return $items;
 }
 
@@ -1429,8 +1429,6 @@ function dh_manageapp_lock_acquire($name, $timeout = 30.0, $delay = 30)
   );
 }
 
+
+
 ?>
-
-
-
-
