@@ -216,14 +216,7 @@ function dh_manageapp_report_form($form, &$form_state)
 				{
 					$cs_course=$r['cs_course'];
 					$c_id=$r['c_id'];
-					if (!in_array($cs_course, $CourseArr))
-					{
-					    $CourseArr[] = $cs_course; 
-					}
-					if (!in_array($c_id, $CourseIDArr))
-					{
-					    $CourseIDArr[] = $c_id; 
-					}
+					
 					$cs_status=$r['cs_status'];
 					$cs_gender=$r['cs_gender'];
 					$cs_old=$r['cs_old'];
