@@ -120,8 +120,9 @@ function dh_manageapp_report_form($form, &$form_state)
 				$courses = db_query($query)->fetchAllKeyed();
 					$courses[''] = 'Choose';
 				$courses['All'] = 'All';
-		
-
+		$storage = $form_state['storage'];
+		// print_r($storage['center_name']);
+		// exit();
 		$breadcrumb = '';
 		if ($centre_id <> '')
 		{
@@ -130,6 +131,38 @@ function dh_manageapp_report_form($form, &$form_state)
 		if ($breadcrumb <> '')
 		{
 			$form['a'] = array('#markup' => '<h3>'.$breadcrumb.'</h3>');
+		}
+		$CenterQueryStr ='';
+		if (user_access("access all centres"))
+		{
+
+			$CenterName= $form_state['storage']['center_name'];
+			$CenterQueryStr = 'c_center in ('.implode(",", array_values($CenterName)).')';
+
+		 	
+		}
+		else
+		{
+			$CenterQueryStr='c_center='.$centre_id;
+		}
+
+		if (user_access("access all centres"))
+		{
+			$center_query="SELECT c_id,c_name from dh_center,dh_user_center where uc_center = ".$user->uid." and uc_user =1 and  uc_deleted=0";
+
+			$center = db_query($center_query)->fetchAllKeyed();
+			$form['#attributes'] = array('id' => array('center-dropdown')); 
+			// $form['center'] = array('#title' => 'center',  '#type' => 'select', '#options' => $center,'#required' => TRUE,'#attributes' => array('id'=>'center_dropdown'));
+
+			$form['center_name'] = array(
+            '#type' => 'select',
+	  	    '#multiple' => TRUE,
+		    '#title' => t('Center Name'),
+		    '#required' => TRUE,
+		    '#options' => $center,
+		    '#size' => 5,
+		    '#attributes' => array('id'=>'center_name'),
+            '#weight' => 0);
 		}
 
 			$form['#attributes'] = array('class' => array('container-inline')); 
@@ -186,97 +219,28 @@ function dh_manageapp_report_form($form, &$form_state)
 		 	$from_date=date('Y-m-d' , strtotime($from_date));
 		 	$to_date=date('Y-m-d' , strtotime($to_date));
 
-	 		$Query="SELECT dh_course_stat.*,c_center,c_name,c_id 
-		 			 FROM dh_course_stat,dh_course 
-		 			where cs_course=c_id and 
-		 				  c_center=$centre_id and 
-		 				  c_course_type=$course and 
-		 				  c_start between '$from_date' AND '$to_date' 
-		 		 order by cs_course,cs_gender ASC";
-		 	if($course == "All")
+		 	$append ='';
+		 	if ($course <> 'All')
 		 	{
-		 		//remove the course type from where condition
-		 		$Query="SELECT dh_course_stat.*,c_center,c_name,c_id 
-		 			 FROM dh_course_stat,dh_course 
-		 			where cs_course=c_id and 
-		 				  c_center=$centre_id and 
-		 				  c_start between '$from_date' AND '$to_date' 
-		 		 order by cs_course,cs_gender ASC";
+		 	  $append = 'and dh_course.c_course_type='.$course;
 		 	}
-		 	  $result = db_query($Query);
-		 	   
-		 	   $OM=0;//old male
-			   $OF=0;//old female
-			   $NM=0;//new male
-			   $NF=0;//new female
-			   $Foreigner=0; //Foreigner
-			   $Total = 0;
-			   $TeacherArr=$rows2=$CourseArr=$CourseIDArr=array();
-			   	while( $r = $result->fetchAssoc() )
-				{
-					$cs_course=$r['cs_course'];
-					$c_id=$r['c_id'];
-					
-					$cs_status=$r['cs_status'];
-					$cs_gender=$r['cs_gender'];
-					$cs_old=$r['cs_old'];
-					$cs_count=$r['cs_count'];
-					$rows[$cs_course]['c_name']=$r['c_name'];
-					if($cs_gender == 'M' && $cs_status=='Attended' && $cs_old == '0')
-					{
-						$rows[$cs_course]['NM']=$cs_count; //new male
-		
-					}
-					if($cs_gender == 'M' && $cs_status=='Attended' && $cs_old == '1')
-					{
-						$rows[$cs_course]['OM']=$cs_count; //old male
-	
-					}
-					if($cs_gender == 'F' && $cs_status=='Attended' && $cs_old == '0')
-					{
-						$rows[$cs_course]['NF']=$cs_count; //new female
-		
-					}	
-					if($cs_gender == 'F' && $cs_status=='Attended' && $cs_old == '1')
-					{
-						$rows[$cs_course]['OF']=$cs_count; //old female
-		
-					}
-						$rows[$cs_course]['SevakMale']=0;
-						$rows[$cs_course]['SevakFemale']=0;
-						$rows[$cs_course]['Foreigner']=0;
-				}
 
-					$Query2="SELECT dh_course_teacher.ct_teacher,
-									dh_teacher.t_f_name,
-									dh_teacher.t_m_name,
-									dh_teacher.t_l_name,
-									dh_course_teacher.ct_type,
-									dh_teacher.t_gender
-							   FROM dh_course_teacher,dh_teacher,dh_course 
-							  where dh_teacher.t_id=dh_course_teacher.ct_teacher and 
-									dh_course_teacher.ct_course=dh_course.c_id and
-			                        c_center=$centre_id and
-			                        dh_course.c_id=$course
-				                and ct_status='Confirmed'";
-					if($course == "All")
-			 		{
-			 			$Query2="SELECT dh_course_teacher.ct_teacher,
-									dh_teacher.t_f_name,
-									dh_teacher.t_m_name,
-									dh_teacher.t_l_name,
-									dh_course_teacher.ct_type,
-	                                dh_course_teacher.ct_course,
-									dh_teacher.t_gender
-							   FROM dh_course_teacher,dh_teacher,dh_course 
-							  where dh_teacher.t_id=dh_course_teacher.ct_teacher and 
-									dh_course_teacher.ct_course=dh_course.c_id and
-			                        c_center=$centre_id and
-				              		ct_status='Confirmed'";
-			 		}
-
+			 $Query2="SELECT dh_course_teacher.ct_teacher,
+							dh_teacher.t_f_name,
+							dh_teacher.t_m_name,
+							dh_teacher.t_l_name,
+							dh_course_teacher.ct_type,
+							dh_course_teacher.ct_course,
+							dh_teacher.t_gender
+					   FROM dh_course_teacher,dh_teacher,dh_course 
+					  where dh_teacher.t_id=dh_course_teacher.ct_teacher and 
+							dh_course_teacher.ct_course=dh_course.c_id and
+	                        ($CenterQueryStr)  
+	                        $append 
+		                and ct_status='Confirmed'";
+				
 						$result2 = db_query($Query2);
-
+						$rows = array();
 						while ($r2=$result2->fetchAssoc())
 	    				{
 							$Name=$r2['t_f_name'].' '.$r2['t_l_name'];
@@ -288,9 +252,54 @@ function dh_manageapp_report_form($form, &$form_state)
 						                    'Gender'=>$Gender,
 						                    'Type'=>$Type);
 						} 
-			
-	
 
+
+	 		$Query="SELECT dh_course_stat.*,c_center,c_name,c_id 
+		 			 FROM dh_course_stat,dh_course 
+		 			where cs_course=c_id and 
+		 				  ($CenterQueryStr) and 
+		 				  c_course_type=$course and cs_status='Attended' and
+		 				  c_start between '$from_date' AND '$to_date' 
+		 		 order by cs_course,cs_gender ASC";
+		 	if($course == "All")
+		 	{
+		 		//remove the course type from where condition
+		 		$Query="SELECT dh_course_stat.*,c_center,c_name,c_id 
+		 			 FROM dh_course_stat,dh_course 
+		 			where cs_course=c_id and 
+		 				  ($CenterQueryStr) and  cs_status='Attended' and
+		 				  c_start between '$from_date' AND '$to_date' 
+		 		 order by cs_course,cs_gender ASC";
+		 	}
+		 	  $result = db_query($Query);
+		 	   
+		 
+			   $Total = 0;
+			   $TeacherArr=$rows2=$CourseArr=$CourseIDArr=array();
+			   $fields = array('NM', 'NF', 'OM', 'OF', 'SM', 'SF');
+			   	while( $r = $result->fetchAssoc() )
+				{
+					$cs_course=$r['cs_course'];
+					$c_id=$r['c_id'];
+					
+					$cs_status=$r['cs_status'];
+					$cs_gender=$r['cs_gender'];
+					$cs_old=$r['cs_old'];
+					$cs_count=$r['cs_count'];
+					$rows[$cs_course]['c_name']=$r['c_name'];
+				
+					$field =  ($cs_old?'O':'N').$cs_gender;
+					// if ($cs_sevak)
+					//	$field[0] = 'S'; 
+
+					$rows[$cs_course][$field] = $cs_count;
+					$rows[$cs_course]['SevakMale']=0;
+					$rows[$cs_course]['SevakFemale']=0;
+					$rows[$cs_course]['Foreigner']=0;
+					
+				}
+
+			
 			foreach ($rows as $key => $value) {
 						$ArrCount=count($value['TeacherData']);
 						$value['TeacherCount']=$ArrCount;
@@ -319,7 +328,7 @@ function dh_manageapp_report_form($form, &$form_state)
 				 $Design +="<thead><tr><td><b>Name</b></td><td  align=\"center\"><b>Gender<b></td><td><b>Type</b></td></tr></thead>";	        
 					jQuery.each(d.TeacherData, function (i, object)
 					{
-								console.log(object.FNAME);
+							
 					            $Design +="<tr><td>"+object.FNAME+"</td><td  align=\"center\">"+object.Gender+"</td><td>"+object.Type+"</td></tr>";
 					});
 			        $Design +="</table></div>";
@@ -427,6 +436,24 @@ function dh_manageapp_report_form($form, &$form_state)
 			$form['a'] = array('#markup' => '<h3>'.$breadcrumb.'</h3>');
 		}
 
+		if (user_access("access all centres"))
+		{
+			$center_query="SELECT c_id,c_name from dh_center,dh_user_center where uc_center = ".$user->uid." and uc_user =1 and  uc_deleted=0";
+
+			$center = db_query($center_query)->fetchAllKeyed();
+			$form['#attributes'] = array('id' => array('center-dropdown')); 
+			// $form['center'] = array('#title' => 'center',  '#type' => 'select', '#options' => $center,'#required' => TRUE,'#attributes' => array('id'=>'center_dropdown'));
+
+			$form['center_name'] = array(
+            '#type' => 'select',
+	  	    '#multiple' => TRUE,
+		    '#title' => t('Center Name'),
+		    '#required' => TRUE,
+		    '#options' => $center,
+		    '#size' => 5,
+		    '#attributes' => array('id'=>'center_name'),
+            '#weight' => 0);
+		}
 			$form['#attributes'] = array('class' => array('container-inline')); 
 		
 			$form['course'] = array('#title' => 'Course', '#type' => 'select', '#options' => $courses,'#required' => TRUE,'#default_value' => 'All');
@@ -453,8 +480,12 @@ function dh_manageapp_report_form($form, &$form_state)
 	            	    dt2.datepicker( 'option', 'maxDate', 0);
 	            		}
 	            	});
-	          
-	            })(jQuery);";
+	    /*     
+		$(document).ready(function(){
+			$('#center_dropdown').select2();
+		});
+		*/
+		})(jQuery);";
 
 			drupal_add_library('system', 'ui.datepicker');
 
