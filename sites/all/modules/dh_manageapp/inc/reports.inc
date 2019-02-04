@@ -138,7 +138,7 @@ function dh_manageapp_report_form($form, &$form_state)
 
 			$CenterName= $form_state['storage']['center_name'];
 			$CenterQueryStr = 'c_center in ('.implode(",", array_values($CenterName)).')';
-
+			
 		 	
 		}
 		else
@@ -198,16 +198,6 @@ function dh_manageapp_report_form($form, &$form_state)
 
 			drupal_add_js($InlineJS, array('type' => 'inline', 'scope' => 'footer', 'weight' => 4));
 			$form['sub'] = array('#type' => 'submit', '#value' =>'Go');
-
-			$header =$r= array();
-			$attributes = array('id' => 'table-applicants');
-			
-			$form['myfieldset']['mytable'] = array(
-			  '#theme' => 'table',
-			  '#attributes' => $attributes,
-			  '#header' => $header,
-			  '#rows' => $r
-			);
 		
 		
 			$form['#submit'][]='dh_manageapp_report_display';
@@ -254,22 +244,53 @@ function dh_manageapp_report_form($form, &$form_state)
 						} 
 
 
-	 		$Query="SELECT dh_course_stat.*,c_center,c_name,c_id 
-		 			 FROM dh_course_stat,dh_course 
-		 			where cs_course=c_id and 
-		 				  ($CenterQueryStr) and 
-		 				  c_course_type=$course and cs_status='Attended' and
-		 				  c_start between '$from_date' AND '$to_date' 
-		 		 order by cs_course,cs_gender ASC";
+	 		// $Query="SELECT dh_course_stat.*,c_center,c_name,c_id 
+		 	// 		 FROM dh_course_stat,dh_course 
+		 	// 		where cs_course=c_id and 
+		 	// 			  ($CenterQueryStr) and 
+		 	// 			  c_course_type=$course and cs_status='Attended' and
+		 	// 			  c_start between '$from_date' AND '$to_date' 
+		 	// 	 order by cs_course,cs_gender ASC";
+		 	// if($course == "All")
+		 	// {
+		 	// 	//remove the course type from where condition
+		 	// 	$Query="SELECT dh_course_stat.*,c_center,c_name,c_id 
+		 	// 		 FROM dh_course_stat,dh_course 
+		 	// 		where cs_course=c_id and 
+		 	// 			  ($CenterQueryStr) and  cs_status='Attended' and
+		 	// 			  c_start between '$from_date' AND '$to_date' 
+		 	// 	 order by cs_course,cs_gender ASC";
+		 	// }
+				$Query="SELECT dh_course_stat.*,c_center,
+		 					   dh_course.c_name,
+		 					   dh_course.c_id ,
+		 					   dh_center.c_name as 'CenterName'
+		 			      FROM dh_course_stat,
+		 			      	   dh_course,
+		 			      	   dh_center
+		 				 where cs_course=dh_course.c_id and 
+						  	   dh_course.c_center = dh_center.c_id and
+		 				  	   ($CenterQueryStr) and 
+		 				  	   c_course_type=$course and 
+		 				  	   cs_status='Attended' and
+		 				  	   c_start between '$from_date' AND '$to_date' 
+		 		 	  order by cs_course,cs_gender ASC";
 		 	if($course == "All")
 		 	{
 		 		//remove the course type from where condition
-		 		$Query="SELECT dh_course_stat.*,c_center,c_name,c_id 
-		 			 FROM dh_course_stat,dh_course 
-		 			where cs_course=c_id and 
-		 				  ($CenterQueryStr) and  cs_status='Attended' and
-		 				  c_start between '$from_date' AND '$to_date' 
-		 		 order by cs_course,cs_gender ASC";
+		 		$Query="SELECT dh_course_stat.*,c_center,
+		 					   dh_course.c_name,
+		 					   dh_course.c_id ,
+		 	                   dh_center.c_name as 'CenterName'
+		 			      FROM dh_course_stat,
+		 			      	   dh_course,
+		 			      	   dh_center
+		 				 where cs_course=dh_course.c_id and 
+						  	   dh_course.c_center = dh_center.c_id and
+		 				  	   ($CenterQueryStr) and  
+		 				  	   cs_status='Attended' and
+		 				  	   c_start between '$from_date' AND '$to_date' 
+		 		      order by cs_course,cs_gender ASC";
 		 	}
 		 	  $result = db_query($Query);
 		 	   
@@ -296,14 +317,28 @@ function dh_manageapp_report_form($form, &$form_state)
 					$rows[$cs_course]['SevakMale']=0;
 					$rows[$cs_course]['SevakFemale']=0;
 					$rows[$cs_course]['Foreigner']=0;
-					
+					$rows[$cs_course]['CenterName']=$r['CenterName'];
 				}
 
 			
 			foreach ($rows as $key => $value) {
 						$ArrCount=count($value['TeacherData']);
 						$value['TeacherCount']=$ArrCount;
-						$TempArr[]=$value;
+						$CenterName=str_replace(' ', '_', $value['CenterName']);
+						// $TempArr[]=$value;
+						$TempArr[$CenterName][]=$value;
+			}
+		
+			foreach ($TempArr as $key => $value) {
+				
+					$header =$r= array();
+					$attributes = array('id' => $key);
+					$form['myfieldset'][$key] = array(
+					  '#theme' => 'table',
+					  '#attributes' => $attributes,
+					  '#header' => $header,
+					  '#rows' => $r
+					);
 			}
 		
 		$data = json_encode($TempArr);
@@ -341,70 +376,81 @@ function dh_manageapp_report_form($form, &$form_state)
 
 					var dataset = '.$data.';
 					var comment = "";			
-
-
-				    var iOS = !!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform);
-				     
-					    var buttonCommon = {
-					        exportOptions: {
-					            format: {
-					            	header: function( data, column, node ) {
-					            		var h = ["FName", "Gender", "Type"]; 
-					            		return h[column];
-					            	},
-					                body: function ( data, row, column, node ) {
-					                	var tmp = table.rows().data();
-					                	var a;
-					                	
-					                	return data;
-					                }
-					            }
-					        }
-					    };
-
-
-						var table = $("#table-applicants").DataTable({
-							data: dataset,					
-					        columns: [	
-					        	{
-					                "class":          "details-control",
-					                "orderable":      false,
-					                "data":           null,
-					                "title":		  "Detail",
-					                "defaultContent": ""
-					            },		        
-					            { data: "c_name", "title" : "Name" },
-					            { data: "NM", "title" : "New Male" },
-						        { data: "OM", "title" : "Old Male"},
-					   			{ data: "NF", "title" : "New Female" },
-						        { data: "OF", "title" : "Old Female" },
-						        { data: "TeacherCount", "title" : "Teacher" },
-						        { data: "SevakMale", "title" : "Sevak Male" },
-						        { data: "SevakFemale", "title" : "Sevak Female" }, 
-						        { data: "Foreigner", "title" : "Foreigner" }
-				            ],   	
-						});
-
-						$("#table-applicants tbody").on("click", "td.details-control", function () {
-				        var tr = $(this).closest("tr");
-				        var row = table.row( tr );
-				 
-				        if ( row.child.isShown() ) {
-				            // This row is already open - close it
-				            $("div.slider", row.child()).slideUp( function () {
-				                row.child.hide();
-				                tr.removeClass("shown");
-				            });
-				        }
-				        else {
-				            // Open this row
-				            row.child( format(row.data()), "no-padding" ).show();
-				            tr.addClass("shown");
-				 
-				            $("div.slider", row.child()).slideDown();		            	
-				        }
-				    });
 			
+					
+				    var iOS = !!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform);
+					$.each(dataset, function (key, object)
+					{					
+							
+						   var TableIDWithHash="#"+key; 
+						   var TableWrapper="#"+key+"_wrapper"; 
+						   var CenterName=object[0][\'CenterName\']; 
+						   $(TableIDWithHash).append("<caption style=\'caption-side: top\' class=\'StatisticsTableCaption\'>"+CenterName+"</caption>");
+						   
+  						   $(".table-responsive").css({"margin-bottom":"25px"});
+  						   $(".StatisticsTableCaption").css({"color":"black","font-weight":"bold"});
+						    var buttonCommon = {
+						        exportOptions: {
+						            format: {
+						            	header: function( object, column, node ) {
+						            		var h = ["FName", "Gender", "Type"]; 
+						            		return h[column];
+						            	},
+						                body: function ( object, row, column, node ) {
+						                	var tmp = table.rows().data();
+						                	var a;
+						                	
+						                	return data;
+						                }
+						            }
+						        }
+						    };
+
+
+							var table = $(TableIDWithHash).DataTable({
+								data: object,					
+						        columns: [	
+						        	{
+						                "class":          "details-control",
+						                "orderable":      false,
+						                "data":           null,
+						                "title":		  "Detail",
+						                "defaultContent": ""
+						            },		        
+						            { data: "c_name", "title" : "Name" },
+						            { data: "NM", "title" : "New Male" },
+							        { data: "OM", "title" : "Old Male"},
+						   			{ data: "NF", "title" : "New Female" },
+							        { data: "OF", "title" : "Old Female" },
+							        { data: "TeacherCount", "title" : "Teacher" },
+							        { data: "SevakMale", "title" : "Sevak Male" },
+							        { data: "SevakFemale", "title" : "Sevak Female" }, 
+							        { data: "Foreigner", "title" : "Foreigner" }
+					            ],   	
+							});
+
+							$(TableIDWithHash+" tbody").on("click", "td.details-control", function () {
+					        var tr = $(this).closest("tr");
+					        var row = table.row( tr );
+					 
+					        if ( row.child.isShown() ) {
+					            // This row is already open - close it
+					            $("div.slider", row.child()).slideUp( function () {
+					                row.child.hide();
+					                tr.removeClass("shown");
+					            });
+					        }
+					        else {
+					            // Open this row
+					            row.child( format(row.data()), "no-padding" ).show();
+					            tr.addClass("shown");
+					 
+					            $("div.slider", row.child()).slideDown();		            	
+					        }
+					    });
+					    	
+					});
+					
 				});
 			})(jQuery);
 		';
