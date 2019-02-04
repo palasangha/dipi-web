@@ -82,8 +82,7 @@ function dh_manage_at_schedule()
 
 function dh_manageapp_report_form($form, &$form_state)
 {
-	
-	global $user;
+		global $user;
   	$_SESSION['lasturi'] = $_SERVER['REQUEST_URI'];
 
 
@@ -96,7 +95,7 @@ function dh_manageapp_report_form($form, &$form_state)
 	drupal_add_js( libraries_get_path("editor").  "/DataTables/datatables.min.js");
 	if ( !($iPad || $iPhone || $iPod) )
 	{
-		drupal_add_js( libraries_get_path("editor").  "/DataTables/Buttons-1.5.1/js/buttons.html5.min.js");
+		//drupal_add_js( libraries_get_path("editor").  "/DataTables/Buttons-1.5.1/js/buttons.html5.min.js");
 		drupal_add_js( libraries_get_path("editor").  "/DataTables/Buttons-1.5.1/js/buttons.print.min.js");
 	}
 
@@ -104,6 +103,15 @@ function dh_manageapp_report_form($form, &$form_state)
 	drupal_add_js( drupal_get_path('module', 'dh_manageapp'). "/js/jquery-confirm.min.js");
 	
 	drupal_add_css(drupal_get_path('module', 'dh_manageapp').'/css/tables.css' );
+
+
+
+
+
+
+
+
+
 
 
 	global $user;
@@ -347,12 +355,9 @@ function dh_manageapp_report_form($form, &$form_state)
 		$button_access = '';
 		if (user_access('export data'))
 			if ( !($iPad || $iPhone || $iPod) )
-				$button_access = '                        
-					$.extend( true, {}, buttonCommon, {
-	      			    extend: "excelHtml5",
-		            	title: "Student Data"
-					} )
-				';
+				$button_access = '{extend: "excel",
+            					   title: "Statistics Data",
+            	}';
 
 	
 
@@ -400,7 +405,7 @@ function dh_manageapp_report_form($form, &$form_state)
 						                	var tmp = table.rows().data();
 						                	var a;
 						                	
-						                	return data;
+						                	return object;
 						                }
 						            }
 						        }
@@ -426,7 +431,11 @@ function dh_manageapp_report_form($form, &$form_state)
 							        { data: "SevakMale", "title" : "Sevak Male" },
 							        { data: "SevakFemale", "title" : "Sevak Female" }, 
 							        { data: "Foreigner", "title" : "Foreigner" }
-					            ],   	
+					            ], 
+					            dom: "lBfrtip",
+					            buttons: ['.$button_access.'
+            						
+        						]  	
 							});
 
 							$(TableIDWithHash+" tbody").on("click", "td.details-control", function () {
