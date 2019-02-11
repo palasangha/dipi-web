@@ -374,6 +374,19 @@ function dh_manageapp_menu()
 	       'access arguments' => array('access all centres'),
 	       'type' => MENU_LOCAL_TASK);
 
+	$items['app-student-courses/%std_id'] = array( 'title' => t('Search'),
+	       'page callback' => '_search_studentid',
+	       'access arguments' => array('access manageapp'),
+	       'type' => MENU_CALLBACK);
+	$items['app-student-activity/%std_id'] = array( 'title' => t('Search'),
+	       'page callback' => '_get_student_activity',
+	       'access arguments' => array('access manageapp'),
+	       'type' => MENU_CALLBACK);
+	$items['app-student-clarifications/%std_id'] = array( 'title' => t('Search'),
+	       'page callback' => '_get_student_clarifications',
+	       'access arguments' => array('access manageapp'),
+	       'type' => MENU_CALLBACK);
+
 	// $items['search-app'] = array( 'title' => t('Search'),
  //           'page arguments' => array('dh_manageapp_search_form'),
 	//        'page callback' => 'drupal_get_form',
@@ -662,7 +675,7 @@ function dh_manage_usermapping()
 				    ]
 				});
 
-
+			
 				var table = $("#user-mapping-table").DataTable( {
 				    ajax: "/user-mapping/handler/'.arg(1).'",
 				    dom: "Bfrtip",
@@ -842,30 +855,35 @@ function _get_teacher( $search )
 
 function _search_student()
 {
+	
 	$app_id = arg(1);
-	$q = "select a_f_name,a_l_name,a_dob,a_email,a_zip from dh_applicant where a_id='$app_id'";
-	$d = db_query($q)->fetchAssoc();
+	
 
-	if ($d['a_email'] <> '')
-		$append = " and a_email='".$d['a_email']."'";
-	elseif ($d['a_zip'] == '')
-		$append = " and a_zip='".$d['a_zip']."'";
-	else
-		$append = " and a_dob='".$d['a_dob']."'";
+		$q = "select a_f_name,a_l_name,a_dob,a_email,a_zip from dh_applicant where a_id='$app_id'";
+		$d = db_query($q)->fetchAssoc();
 
-	$q = "select c_name, a_address, a_attended, a_type, a_status from dh_applicant left join dh_course on a_course=c_id where a_f_name='".$d['a_f_name']."' and a_l_name='".$d['a_l_name']."' $append order by c_created desc limit 15";
-	$result = db_query($q);
-	$rows = array();
-	while($r = $result->fetchAssoc())
-	{
-		$row = array();
-		$row[] = $r['c_name']; 
-		$row[] =$r['a_type'];
-		$row[] = $r['a_status']; 
-		$row[] = $r['a_attended']?'True':'False'; 
-		$row[] = $r['a_address']; 
-		$rows[] = $row;
-	}
+		if ($d['a_email'] <> '')
+			$append = " and a_email='".$d['a_email']."'";
+		elseif ($d['a_zip'] == '')
+			$append = " and a_zip='".$d['a_zip']."'";
+		else
+			$append = " and a_dob='".$d['a_dob']."'";
+
+		$q = "select c_name, a_address, a_attended, a_type, a_status from dh_applicant left join dh_course on a_course=c_id where a_f_name='".$d['a_f_name']."' and a_l_name='".$d['a_l_name']."' $append order by c_created desc limit 15";
+		$result = db_query($q);
+		$rows = array();
+		while($r = $result->fetchAssoc())
+		{
+			$row = array();
+			$row[] = $r['c_name']; 
+			$row[] =$r['a_type'];
+			$row[] = $r['a_status']; 
+			$row[] = $r['a_attended']?'True':'False'; 
+			$row[] = $r['a_address']; 
+			$rows[] = $row;
+		}
+	
+
 	$header = array('Course', 'Type', 'Status', 'Attended', 'Address');
 	$out = theme('table', array('header' => $header, 'rows' => $rows));
 	print $out;
@@ -1145,7 +1163,7 @@ function _get_clarifications()
 	$out = '';
 	if (!empty($rows))
 		$out = theme('table', array('header' => $header, 'rows' => $rows));
-	print $out;
+
 	exit;
 }
 
@@ -1428,6 +1446,104 @@ function dh_manageapp_lock_acquire($name, $timeout = 30.0, $delay = 30)
     )
   );
 }
+
+
+function std_id_load( $id )
+{
+	global $user;
+	if ( ! is_numeric($id) )
+		return false;
+
+	return $id;
+}
+
+function _search_studentid()
+{
+
+	$std_id = arg(1);
+
+	$Query="SELECT from_migration_script from dh_student where s_id = '".$std_id."'";
+	$QueryResult = db_query($Query)->fetchAssoc();
+	
+	if($QueryResult['from_migration_script'] == 'Yes')
+	{
+		$q = "select c_name, s_address from dh_student left join dh_student_course on s_id=sc_student left join dh_course on  sc_course=c_id where s_id=".$std_id." limit 15";
+		
+			
+			$result = db_query($q);
+			$rows = array();
+			while($r = $result->fetchAssoc())
+			{
+				$row = array();
+				$row['c_name'] =$r['c_name']; 
+				$row['a_type'] ='Student';
+				$row['a_status'] = 'Attended'; 
+				$row['a_attended'] = 'True'; 
+				$row['a_address'] = $r['s_address']; 
+				$rows[] = $row;
+			}
+	}
+	else
+	{
+		$q = "select s_f_name,s_l_name,s_dob,s_email,s_zip from dh_student where s_id='$std_id'";
+		$d = db_query($q)->fetchAssoc();
+
+		if ($d['a_email'] <> '')
+			$append = " and a_email='".$d['s_email']."'";
+		elseif ($d['a_zip'] == '')
+			$append = " and a_zip='".$d['s_zip']."'";
+		else
+			$append = " and a_dob='".$d['s_dob']."'";
+
+		$q = "select c_name, a_address, a_attended, a_type, a_status from dh_applicant left join dh_course on a_course=c_id where a_f_name='".$d['s_f_name']."' and a_l_name='".$d['s_l_name']."' $append order by c_created desc limit 15";
+		$result = db_query($q);
+		$rows = array();
+		while($r = $result->fetchAssoc())
+		{
+			$row = array();
+			$row[] = $r['c_name']; 
+			$row[] =$r['a_type'];
+			$row[] = $r['a_status']; 
+			$row[] = $r['a_attended']?'True':'False'; 
+			$row[] = $r['a_address'];
+			
+			$rows[] = $row;
+		}
+	}
+	$header = array('Course', 'Type', 'Status', 'Attended', 'Address');
+	$out = theme('table', array('header' => $header, 'rows' => $rows));
+	print $out;
+	exit;
+}
+function _get_student_activity()
+{
+	//$app_id = arg(1);
+	//$std_id = arg(1);
+
+	
+	$out = '';
+	print $out;
+
+	exit;
+}
+function _get_student_clarifications()
+{
+	//$app_id = arg(1);
+	//$std_id = arg(1);
+
+	
+		$out = '';
+		print $out;
+	
+	exit;
+}
+
+
+
+
+
+
+
 
 
 
