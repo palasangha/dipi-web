@@ -174,16 +174,16 @@ function dh_manage_courses()
 			                action: function ( e, dt, node, config ) {
 			                    var rows = table.rows( {selected: true} ).indexes();
 			 					var rowData = table.rows(".selected").data();
-			 						console.log(rowData);
-			 						var TransFlag=true;
+			 						
+			 						var AllowDeleteCourseFlag=true;
 			 						$.each( rowData, function( key, value ) {
-			 								console.log(value.dh_applicant.length)
-			 								if(value.dh_applicant.length > 1 && TransFlag)
+			 								if(value.dh_applicant.length > 1 && AllowDeleteCourseFlag)
 			 								{
-			 									TransFlag=false;
+			 									AllowDeleteCourseFlag=false; //set the flag
+			 									return false; //exit from the loop
 			 								}
 			 						});
-			 					if(!TransFlag)
+			 					if(!AllowDeleteCourseFlag)
 			 					{
 			 						alert("Course has applications. Cannot be deleted");
 			 						return;
@@ -228,17 +228,19 @@ function dh_manage_courses()
 			                	if ( r == true )
 			                	{ 
 			                		var ApplicantLength=row[0].dh_applicant.length;
-			                		var TransFlag=false;
+			                		var AllowFinalizedCourseFlag=false;
 			                		if(ApplicantLength != 0)
 			                		{
 			                			$.each( row[0].dh_applicant, function( key, value ) {
-											 	if((value.a_attended == 1) && (TransFlag == false))
+			                					
+											 	if((value.a_attended == 1) && (AllowFinalizedCourseFlag == false))
 											 	{
-											 		TransFlag=true;
+											 		AllowFinalizedCourseFlag=true; //set the flag
+											 		return false; //exit from the loop
 											 	}
 										});
 			                		}
-			                		if(!TransFlag)
+			                		if(!AllowFinalizedCourseFlag)
 			                		{
 			                			alert("Students who have attended course have not been updated. Please update via Zero Day section");
 			                			return;
