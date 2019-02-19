@@ -175,38 +175,47 @@ function dh_manage_courses()
 			                    var rows = table.rows( {selected: true} ).indexes();
 			 					var rowData = table.rows(".selected").data();
 			 						
-			 						var AllowDeleteCourseFlag=true;
-			 						$.each( rowData, function( key, value ) {
-			 								if(value.dh_applicant.length > 1 && AllowDeleteCourseFlag)
-			 								{
-			 									AllowDeleteCourseFlag=false; //set the flag
-			 									return false; //exit from the loop
-			 								}
-			 						});
-			 					if(!AllowDeleteCourseFlag)
-			 					{
-			 						alert("Course has applications. Cannot be deleted");
-			 						return;
-			 					}
-			 					else
-			 					{
-				                    editor
-				                        .hide( editor.fields() )
-				                        .one( "close", function () {
-				                            setTimeout( function () { // Wait for animation
-				                                editor.show( editor.fields() );
-				                            }, 500 );
-				                        } )
-				                        .edit( rows, {
-				                            title: "Delete",
-				                            message: rows.length === 1 ?
-				                                "Are you sure you wish to delete this row?" :
-				                                "Are you sure you wish to delete these "+rows.length+" rows",
-				                            buttons: "Delete"
-				                        } )
-				                        .val( "dh_course.c_deleted", 1 );
-				                        
-			 					}
+			 						var blkstr = [];
+									$.each(rowData, function(key,val) {                    
+									  var course_id=val.dh_course.c_id;
+									  blkstr.push(course_id);
+									});
+									blkstr.join(",");
+									var $URL="/app-student-count-cancel/"+blkstr;
+				                	var request = $.ajax({
+	            						url:$URL,
+	            						type: "GET"
+	        						});
+	        						request.done(function (responseString) {
+	        							
+	           							var obj = responseString;
+	           							if(obj.ApplicantFound == "Yes")
+	           							{
+											alert("Course has applications. Cannot be deleted");
+			 								return;
+	           							}
+	           							else
+	           							{
+	           								editor
+					                        .hide( editor.fields() )
+					                        .one( "close", function () {
+					                            setTimeout( function () { // Wait for animation
+					                                editor.show( editor.fields() );
+					                            }, 500 );
+					                        } )
+					                        .edit( rows, {
+					                            title: "Delete",
+					                            message: rows.length === 1 ?
+					                                "Are you sure you wish to delete this row?" :
+					                                "Are you sure you wish to delete these "+rows.length+" rows",
+					                            buttons: "Delete"
+					                        } )
+					                        .val( "dh_course.c_deleted", 1 );
+					                    }
+		           							
+	           						});
+
+							
 			                }
 			            },
     			        {
@@ -218,41 +227,41 @@ function dh_manage_courses()
 			                		alert("Please select only one row");
 			                		return;
 			                	}
-			                	var row = table.rows(".selected").data();
-			                	if ( row[0].dh_course.c_finalized == "1" )
+			                	else
 			                	{
-			                		alert("Course already finalized!");
-			                		return;
-			                	}
-			                	var r = confirm("PLEASE MAKE SURE COURSE IS COMPLETE AND LEFT STUDENTS ARE UPDATED BEFORE FINALIZING.\nAre you sure you want to finalize this course?");
-			                	if ( r == true )
-			                	{ 
-			                		var ApplicantLength=row[0].dh_applicant.length;
+			                		var row = table.rows(".selected").data();
+			                		var course_id=row[0].dh_course.c_id;
 			                		var AllowFinalizedCourseFlag=false;
-			                		if(ApplicantLength != 0)
-			                		{
-			                			$.each( row[0].dh_applicant, function( key, value ) {
-			                					
-											 	if((value.a_attended == 1) && (AllowFinalizedCourseFlag == false))
-											 	{
-											 		AllowFinalizedCourseFlag=true; //set the flag
-											 		return false; //exit from the loop
-											 	}
-										});
-			                		}
-			                		if(!AllowFinalizedCourseFlag)
-			                		{
-			                			alert("Students who have attended course have not been updated. Please update via Zero Day section");
-			                			return;
-			                		}
-			                		else
-			                		{
-					                    editor
-					                        .edit( table.row( { selected: true } ).index(), false )
-										    .set( "dh_course.c_finalized", "1" )
-					                        .submit();
-			                		}
+			                		
+				                	var $URL="/app-student-count-finalize/"+course_id;
+				                	var request = $.ajax({
+	            						url:$URL,
+	            						type: "GET"
+	        						});
+	        						request.done(function (responseString) {
+	        							
+	           							var obj = responseString;
+	           							
+	           							var r = confirm("PLEASE MAKE SURE COURSE IS COMPLETE AND LEFT STUDENTS ARE UPDATED BEFORE FINALIZING.\nAre you sure you want to finalize this course?");
+			                			if ( r == true)
+			                			{	
+			                				if(obj.Count > 0)
+			                				{
+
+			                				editor.edit( table.row( { selected: true } ).index(), false )
+			                					.set( "dh_course.c_finalized", "1" )
+					                        	.submit();
+			                				}
+			                				else
+			                				{
+			                					alert("Students who have attended course have not been updated. Please update via Zero Day section");
+			                					return;
+			                				}
+			                			}
+			                			
+	           						});
 			                	}
+			              
 			                }
 
 			            }
@@ -497,14 +506,7 @@ function dh_manage_course_handler()
    	            	$out['None'] = "0";
         			return $out;
          		}),
-         		\DataTables\Editor\Field::inst( 'dh_course.c_finalized_tstamp' )
-   	            ->options( function() {
-					
-   	            	$a = db_query('SELECT c_id,count(a_id) as student_count from dh_course,dh_applicant where dh_course.c_id = dh_applicant.a_course and c_center='.arg(2).' and a_attended=1 group by c_name')->fetchAllKeyed();
-   	            	$out = $a;
-   	            	
-        			return $out;
-         		}),
+         		\DataTables\Editor\Field::inst( 'dh_course.c_finalized_tstamp' ),
 	    \DataTables\Editor\Field::inst( 'dh_course.c_deleted' ), 
 	     
 	    \DataTables\Editor\Field::inst( 'dh_course.c_center' )
@@ -521,23 +523,7 @@ function dh_manage_course_handler()
 	    )
     ->leftJoin('dh_type_detail as ctype', 'ctype.td_id', '=', 'dh_course.c_course_type' ) 
     ->leftJoin('dh_type_detail as cstatus', 'cstatus.td_id', '=', 'dh_course.c_status' ) 
-    ->join(
-	        \DataTables\Editor\Mjoin::inst( 'dh_applicant' )
-	            ->link( 'dh_course.c_id', 'dh_applicant.a_course' )
-	            ->fields(
-	        			\DataTables\Editor\Field::inst( 'a_id' )
-	                    	->options( \DataTables\Editor\Options::inst()
-	                        ->table( 'dh_applicant' )
-	                        ->value( 'a_id' )
-	                        ->label( 'a_attended' ),
-	        				\DataTables\Editor\Field::inst( 'a_attended' )
-	        			),
-	                    \DataTables\Editor\Field::inst( 'a_attended' )
-	                    	
-	                )
-	            ->where( 'a_center', $centre_id)
-	            // ->where( 'a_attended', 1)
-	         )        
+         
  
     ->pkey('c_id')
     ->on( 'preCreate', function ( $editor, $values ) { _course_set_default( $editor, 0, $values); } )

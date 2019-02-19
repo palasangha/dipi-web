@@ -387,6 +387,15 @@ function dh_manageapp_menu()
 	       'access arguments' => array('access manageapp'),
 	       'type' => MENU_CALLBACK);
 
+	$items['app-student-count-finalize/%course_id'] = array( 'title' => t('Search'),
+	       'page callback' => '_get_student_finalize',
+	       'access arguments' => array('access manageapp'),
+	       'type' => MENU_CALLBACK);	
+
+	$items['app-student-count-cancel/%course_arr'] = array( 'title' => t('Search'),
+	       'page callback' => '_get_student_cancel_count',
+	       'access arguments' => array('access manageapp'),
+	       'type' => MENU_CALLBACK);
 	// $items['search-app'] = array( 'title' => t('Search'),
  //           'page arguments' => array('dh_manageapp_search_form'),
 	//        'page callback' => 'drupal_get_form',
@@ -1540,8 +1549,69 @@ function _get_student_clarifications()
 
 
 
+function _get_student_finalize()
+{
+	global $user;
+	$c_course = arg(1);
 
+	 $q = "SELECT count(a_attended) as TotalAttended from dh_applicant where a_attended=1 and a_course=$c_course";
+		$result = db_query($q);
+		$Count=$result->rowCount();
+		if($Count > 0)
+		{		
+			$rows = array();
+			while($r = $result->fetchAssoc())
+			{
+				$row = array();
+				$row['Count'] =  intval($r['TotalAttended']); 
+				
+			}
+		}
+		else
+		{
+			$row['Count'] = 0 ;
+		}
+		drupal_json_output($row);
+		exit;
+}
 
+function course_arr_load($id)
+{
+	global $user;
+	return $id;
+}
 
+function _get_student_cancel_count()
+{
+	global $user;
+	$c_course = arg(1);
+	$CourseArr=(explode(",",$c_course));
+	foreach ($CourseArr as $key => $value) 
+	{
+		
+		$q = "SELECT count(a_id) as TotalApplicant from dh_applicant where a_course=$value";
+		$result = db_query($q);
+		while($r = $result->fetchAssoc())
+		{
+			$ApplicantCount=$r['TotalApplicant'];
+			if($ApplicantCount > 0)
+			{	
+				
+				$row['ApplicantFound']='Yes';
+				break;
+			}
+			else
+			{
+				$row['ApplicantFound']='No';
+			}
+		}
+		if($row['ApplicantFound']=='Yes')
+		{
+				break;
+		}
+	}
+	drupal_json_output($row);
+	exit;
+}
 
 ?>
