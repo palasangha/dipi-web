@@ -304,7 +304,7 @@ function dh_manageapp_report_form($form, &$form_state)
 		 	   
 		 
 			   $Total = 0;
-			   $TeacherArr=$rows2=$CourseArr=$CourseIDArr=array();
+			   $TeacherArr=$rows2=$CourseArr=$CourseIDArr=$TempArr=array();
 			   $fields = array('NM', 'NF', 'OM', 'OF', 'SM', 'SF');
 			   	while( $r = $result->fetchAssoc() )
 				{
