@@ -2,8 +2,6 @@
 
 function dh_manageapp_search_results( $type, $where, $centre )
 {
-	//$type='s';
-	//$where='sc_center=1 and sc_course=1'; 
 	global $user;
   	$_SESSION['lasturi'] = $_SERVER['REQUEST_URI'];
 	//drupal_add_js(drupal_get_path('module', 'dh_manageapp').'/datatables.min.js' );
@@ -27,7 +25,7 @@ function dh_manageapp_search_results( $type, $where, $centre )
 	$q = "select td_key, td_val1 from dh_type_detail where td_type='COURSE-SYSTEM-STATUS'";
 	$system_statues = db_query($q)->fetchAllKeyed();
 
-	$q = "select td_key, td_key from dh_type_detail where td_type='COURSE-STATUS'";
+	$q = "select td_key, td_key from dh_type_detail where td_type='COURSE-STATUS' and td_key != 'Reconfirmation'";
 	$statuses = db_query($q)->fetchAllKeyed();
 	$statuses[''] = 'Choose';
 	$statuses[$system_statues['STATUS-CONFIRMED']] = $system_statues['STATUS-CONFIRMED'];
@@ -82,9 +80,9 @@ function dh_manageapp_search_results( $type, $where, $centre )
 	}
 
 	if ( $type == 'applicant')
-		$q = "select c.c_finalized, a_id, a_type, a_center, a_course, a_conf_no as 'ConfNo', concat(a_f_name, ' ',a_m_name, ' ',a_l_name) as 'Full Name', a_gender, a_status, ci.c_name as 'City', s.s_name, co.c_name as 'Country', a_city_str, c.c_name, a_address, a_zip, a_email, a_phone_home, a_phone_office, a_phone_mobile, a_education, a_occupation, a_occupation_past, a_company, a_designation, a_department, a_alist, '00' as 'a_monk', a_uri, a_photo, TIMESTAMPDIFF( YEAR, a_dob, CURDATE() ) as 'Age', a_lang_1,a_lang_2, a_lang_3, a_langs, a_old, a_attended, a_internal_note, a_willing_to_serve, a_extra, '00' as a_referral, c.c_end,'00' as ac_teen, ac_10d, ac_stp, ac_spl, ac_20d, ac_30d, ac_45d, ac_60d, ac_tsc, ac_teacher,ac_service, aa_left_comment, CONCAT( IFNULL(ac_first_year, ''),'-',IFNULL(ac_first_month, ''),'-',IFNULL(ac_first_day, ''), ', ', ac_first_location_str) as 'first_course', CONCAT( IFNULL(ac_last_year,''),'-',IFNULL(ac_last_month,''),'-',IFNULL(ac_last_day, ''), ', ', ac_last_location_str) as 'last_course', ac_practice_details,  ae_desc_physical,  ae_desc_medication,  ae_desc_mental, ae_desc_other_technique, ae_desc_addiction_current, ae_pregnant, ae_pregnant_detail,'00' as ae_father,'00' as  ae_mother,'00' as  ae_parent_course,'00' as  ae_teen_std from dh_applicant left join dh_applicant_course ac on (a_id=ac_applicant)  left join dh_applicant_attended aa on (a_id=aa_applicant) left join dh_applicant_extra ae on (a_id=ae_applicant) left join dh_course c on (a_course=c.c_id) left join dh_country co on (a_country=co.c_code) left join dh_city ci on a_city=ci.c_id left join dh_state s on (a_state=s.s_code and a_country=s.s_country) left join dh_center ce on (a_center=ce.c_id)  where $where order by a_created,a_vray_id";
+		$q = "select c.c_finalized, a_id, a_type, a_center, a_course, a_conf_no as 'ConfNo', concat(a_f_name, ' ',a_m_name, ' ',a_l_name) as 'Full Name', a_gender, a_status, ci.c_name as 'City', s.s_name, co.c_name as 'Country', a_city_str, c.c_name, a_address, a_zip, a_email, a_phone_home, a_phone_office, a_phone_mobile, a_education, a_occupation, a_occupation_past, a_company, a_designation, a_department, a_alist, a_monk, a_uri, a_photo, TIMESTAMPDIFF( YEAR, a_dob, CURDATE() ) as 'Age', a_lang_1,a_lang_2, a_lang_3, a_langs, a_old, a_attended, a_internal_note, a_willing_to_serve, a_extra, a_referral, c.c_end, ac_teen, ac_10d, ac_stp, ac_spl, ac_20d, ac_30d, ac_45d, ac_60d, ac_tsc, ac_teacher,ac_service, aa_left_comment, aa_section, aa_acco, CONCAT( IFNULL(ac_first_year, ''),'-',IFNULL(ac_first_month, ''),'-',IFNULL(ac_first_day, ''), ', ', ac_first_location_str) as 'first_course', CONCAT( IFNULL(ac_last_year,''),'-',IFNULL(ac_last_month,''),'-',IFNULL(ac_last_day, ''), ', ', ac_last_location_str) as 'last_course', ac_practice_details,  ae_desc_physical,  ae_desc_medication,  ae_desc_mental, ae_desc_other_technique, ae_desc_addiction_current, ae_pregnant, ae_pregnant_detail, ae_father, ae_mother, ae_parent_course, ae_teen_std from dh_applicant left join dh_applicant_course ac on (a_id=ac_applicant)  left join dh_applicant_attended aa on (a_id=aa_applicant) left join dh_applicant_extra ae on (a_id=ae_applicant) left join dh_course c on (a_course=c.c_id) left join dh_country co on (a_country=co.c_code) left join dh_city ci on a_city=ci.c_id left join dh_state s on (a_state=s.s_code and a_country=s.s_country) left join dh_center ce on (a_center=ce.c_id)  where $where order by a_created,a_vray_id";
 	else
-		$q = "select c.c_finalized, s.s_id as 'a_id', 'Student' as 'a_type',sc_course as 'a_center', sc_course as 'a_course', sc_conf_no as 'ConfNo', concat(s_f_name, ' ',s_m_name, ' ',s_l_name) as 'Full Name', s_gender as 'a_gender', 'Attended' as 'a_status', ci.c_name as 'City', st.s_name, co.c_name as 'Country', '' as 'a_city_str', c.c_name, s_address as 'a_address', s_zip as 'a_zip', s_email as  'a_email', s_phone_home as  'a_phone_home',s_phone_office as 'a_phone_office',s_phone_mobile as 'a_phone_mobile',s_education as 'a_education',s_occupation as 'a_occupation',s_occupation_past as 'a_occupation_past',s_company as 'a_company', s_designation as 'a_designation', s_department as 'a_department',s_alist as  'a_alist', s_monk as 'a_monk', s_photo as 'a_photo', TIMESTAMPDIFF( YEAR, s_dob, CURDATE() ) as 'Age', s_lang_1 as 'a_lang_1', s_lang_2 as 'a_lang_2', s_lang_3 as  'a_lang_3', s_langs as 'a_langs', 1 as 'a_old', 1 as 'a_attended', c.c_end, sci_teen as 'ac_teen',sci_10d as 'ac_10d', sci_stp as 'ac_stp', sci_spl as 'ac_spl', sci_20d as  'ac_20d',sci_30d as  'ac_30d', sci_45d as  'ac_45d', sci_60d as 'ac_60d', sci_tsc as 'ac_tsc', sci_service as 'ac_service',sci_teacher as 'ac_teacher', CONCAT( IFNULL(sci_first_year, ''),'-',IFNULL(sci_first_month, ''),'-',IFNULL(sci_first_day, ''), ', ', sci_first_location_str) as 'first_course', '' as 'ac_practice_details', sc_desc_physical as 'ae_desc_physical', sc_desc_medication  as 'ae_desc_medication',  sc_desc_mental as 'ae_desc_mental', sc_desc_other_technique as 'ae_desc_other_technique', sc_addiction_current 'ae_desc_addiction_current', '' as 'ae_pregnant', '' as 'ae_pregnant_detail', sc_uri as 'a_uri' from dh_student s left join dh_student_course sc on (s.s_id=sc_student) left join dh_student_course_input sci on (s.s_id=sci_student) left join dh_course c on (sc_course=c.c_id) left join dh_country co on (s.s_country=co.c_code) left join dh_city ci on s_city=ci.c_id left join dh_state st on (s.s_state=st.s_code and s.s_country=st.s_country)  where $where group by s.s_id order by s_f_name";
+		$q = "select c.c_finalized, s.s_id as 'a_id', 'Student' as 'a_type', sc_course as 'a_course', sc_conf_no as 'ConfNo', concat(s_f_name, ' ',s_m_name, ' ',s_l_name) as 'Full Name', s_gender as 'a_gender', 'Attended' as 'a_status', ci.c_name as 'City', st.s_name, co.c_name as 'Country', '' as 'a_city_str', c.c_name, s_address as 'a_address', s_zip as 'a_zip', s_email as  'a_email', s_phone_home as  'a_phone_home',s_phone_office as 'a_phone_office',s_phone_mobile as 'a_phone_mobile',s_education as 'a_education',s_occupation as 'a_occupation',s_occupation_past as 'a_occupation_past',s_company as 'a_company', s_designation as 'a_designation', s_department as 'a_department',s_alist as  'a_alist', s_monk as 'a_monk', s_photo as 'a_photo', TIMESTAMPDIFF( YEAR, s_dob, CURDATE() ) as 'Age', s_lang_1 as 'a_lang_1', s_lang_2 as 'a_lang_2', s_lang_3 as  'a_lang_3', s_langs as 'a_langs', 1 as 'a_old', 1 as 'a_attended', c.c_end, sci_teen as 'ac_teen',sci_10d as 'ac_10d', sci_stp as 'ac_stp', sci_spl as 'ac_spl', sci_20d as  'ac_20d',sci_30d as  'ac_30d', sci_45d as  'ac_45d', sci_60d as 'ac_60d', sci_tsc as 'ac_tsc', sci_teacher as 'ac_teacher', CONCAT( IFNULL(sci_first_year, ''),'-',IFNULL(sci_first_month, ''),'-',IFNULL(sci_first_day, ''), ', ', sci_first_location_str) as 'first_course', '' as 'ac_practice_details', sc_desc_physical as 'ae_desc_physical', sc_desc_medication  as 'ae_desc_medication',  sc_desc_mental as 'ae_desc_mental', sc_desc_other_technique as 'ae_desc_other_technique', sc_addiction_current 'ae_desc_addiction_current', '' as 'ae_pregnant', '' as 'ae_pregnant_detail', sc_uri as 'a_uri' from dh_student s left join dh_student_course sc on (s.s_id=sc_student) left join dh_student_course_input sci on (s.s_id=sci_student) left join dh_course c on (sc_course=c.c_id) left join dh_country co on (s.s_country=co.c_code) left join dh_city ci on s_city=ci.c_id left join dh_state st on (s.s_state=st.s_code and s.s_country=st.s_country)  where $where order by s_f_name";
 
 	//c.c_name as 'last_course'
 	//drupal_set_message($q);
@@ -127,6 +125,7 @@ function dh_manageapp_search_results( $type, $where, $centre )
 		$temp = explode(" / ", $r['c_name']); unset($temp[0]);
 		$rs['course'] = implode(" / ", $temp);
 		$rs['status'] = $r['a_status'].($r['ConfNo']?" (".$r['ConfNo'].")":"");
+		$rs['app_status'] = $r['a_status'];
 		$rs['confno'] = $r['ConfNo'];
 		if ($r['City'] == '')
 			$r['City'] = $r['a_city_str'];
@@ -173,7 +172,9 @@ function dh_manageapp_search_results( $type, $where, $centre )
 		$rs['course_tsc'] = $r['ac_tsc']?$r['ac_tsc']:"0";
 		$rs['course_seva'] = $r['ac_service']?$r['ac_service']:"0";
 		$rs['left_reason'] = $r['aa_left_comment'];
-		
+		$rs['section'] = ($r['aa_section'] && strtolower($r['aa_section']) <> 'null')?$r['aa_section']:"NA";
+		$rs['acc'] = ($r['aa_acco'] && strtolower($r['aa_acco']) <> 'null')?$r['aa_acco']:"NA";
+
 		$rs['first_course'] = $rs['last_course'] = '';
 		if ($r['a_old'])
 		{
@@ -229,9 +230,22 @@ function dh_manageapp_search_results( $type, $where, $centre )
 	{
 		$status_select = '<option value="" selected="selected">Choose</option>';
 		foreach ($statuses as $key => $value) 
+		{
 			if ($key <> '')
 				$status_select .= '<option value="'.$key.'">'.$value.'</option>';
-		$status_action = ' if (data.finalized) return "NA"; else  return "<select id=\"new-status-"+data.aid+"\" name=\"newstatus"+data.aid+"\" class=\"status-select\">'.addslashes($status_select).'</select><div class=\"sub-letter-"+data.aid+"\" subletter=\"\"></div><button type=\"button\" class=\"update-status\" id=\"btn-"+data.aid+"\">Update</button>";
+		}
+
+
+		$status_action = ' if (data.finalized) return "NA"; 
+			else  
+			{
+				var tmp = "";
+				if (data.app_status == "Confirmed" || data.app_status == "ReConfirmation")
+				{
+					 tmp = "<option value=\"ReConfirmation\">ReConfirmation</option><option value=\"Expected\">Expected</option>";
+				}
+				return "<select id=\"new-status-"+data.aid+"\" name=\"newstatus"+data.aid+"\" class=\"status-select\">'.addslashes($status_select).'"+tmp+"</select><div class=\"sub-letter-"+data.aid+"\" subletter=\"\"></div><button type=\"button\" class=\"update-status\" id=\"btn-"+data.aid+"\">Update</button>";
+			}
 			';
 	}
 	else
@@ -374,7 +388,7 @@ function dh_manageapp_search_results( $type, $where, $centre )
 			        exportOptions: {
 			            format: {
 			            	header: function( data, column, node ) {
-			            		var h = ["Name", "Gender", "Age", "Courses", "PhoneMobile", "PhoneHome", "PhoneOffice", "Email", "Education", "Occupation", "Company", "Designation/Dept", "Address", "Pin", "City", "State","Country", ""]; 
+			            		var h = ["Name", "Gender", "Age", "Courses", "PhoneMobile", "PhoneHome", "PhoneOffice", "Email", "Education", "Occupation", "Company", "Designation/Dept", "Address", "Pin", "City", "State","Country", "Accommodation", ""]; 
 			            		return h[column];
 			            	},
 			                body: function ( data, row, column, node ) {
@@ -450,6 +464,9 @@ function dh_manageapp_search_results( $type, $where, $centre )
 			                	else if (column == 16) {
 			                		return tmp[ row ].country; 
 			                	}
+			                	else if (column == 17) {
+			                		return tmp[ row ].section + " - " + tmp[ row ].acc; 
+			                	}
 			                	return data;
 			                }
 			            }
@@ -464,7 +481,7 @@ function dh_manageapp_search_results( $type, $where, $centre )
 					data: dataset,
 					"columnDefs": [
 					            {
-					                "targets": [ 8, 9, 10, 11, 12, 13, 14, 15, 16 ],
+					                "targets": [ 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 ],
 					                "visible": false,
 					                "searchable": false
 					            }
@@ -488,6 +505,7 @@ function dh_manageapp_search_results( $type, $where, $centre )
 				        { data: null, "title" : "Action", render: function(data, type, row) {
 				        		'.$action.'
 				        } },
+				        { data: null, "title": "" },
 				        { data: null, "title": "" },
 				        { data: null, "title": "" },
 				        { data: null, "title": "" },
@@ -870,7 +888,7 @@ function dh_manageapp_search_form($form, &$form_state)
 			if ( in_array( 'Attended',  $storage['status']) && (count($storage['status']) == 1) )
 				$where .= " and a_attended = '1'";
 			elseif ( in_array('Confirmed', $storage['status']) && (count($storage['status']) == 1) )
-				$where .= " and a_status in ('Confirmed', 'Expected')";
+				$where .= " and a_status in ('Confirmed', 'Expected', 'Reconfirmation')";
 			else
 				$where .=  " and a_status in ('".(implode("', '",$storage['status']))."'".")";
 				//"'" . implode ( "', '", $temp ) . "'";
@@ -942,57 +960,10 @@ function dh_manageapp_search_form($form, &$form_state)
 		//$out .= '</h2>';
 		$storage['db_type'] = 'a';
 		if ( $storage['db_type'] == 'a' )
-		{
 			$db_type = 'applicant';
-			$out .= dh_manageapp_search_results( $db_type, $where, $centre_id );
-		}
 		else
-		{
 			$db_type = 'student';
-			$where = "sc_center='".$centre_id."'";
-			if ( $storage['course'] <> '' )
-				$where .= " and sc_course='".$storage['course']."'";
-
-			if ( $storage['f_name'] <> '' )
-				$where .= " and s_f_name like '".trim($storage['f_name'])."%'";
-
-			if ( $storage['l_name'] <> '' )
-				$where .= " and s_l_name like '".trim($storage['l_name'])."%'";
-
-			if ( $storage['conf_no'] <> '' )
-				$where .= " and sc_conf_no = '".trim($storage['conf_no'])."'";
-
-			if ( ! (user_access("access male") && (user_access("access female"))) )
-			{
-				if ( user_access("access male") ) $gender = 'M'; else $gender = 'F'; 
-				$where .= " and s_gender ='$gender'";
-			}
-			elseif ( $storage['gender'] <> '' )
-				$where .= " and s_gender = '".$storage['gender']."'";
-
-			if ( $storage['country'] <> '' )
-				$where .= " and s.s_country = '".$storage['country']."'";
-
-			if ( $storage['state'] <> '' )
-			$where .= " and s_name LIKE '".$storage['state']."%'";
-
-			if ( $storage['email'] <> '' )
-			$where .= " and s_email LIKE '".$storage['email']."%'";
-
-
-			if ( $storage['phone_home'] <> '' )
-				$where .= " and s_phone_home like '".trim($storage['phone_home'])."%'";
-
-			if ( $storage['mobile'] <> '' )
-				$where .= " and s_phone_mobile like '".trim($storage['mobile'])."%'";
-
-			
-
-			$out .= dh_manageapp_search_student_results( $db_type, $where, $centre_id );
-					//$out .= dh_manageapp_search_results( $db_type, $where, $centre_id );
-		
-		}
-
+		$out .= dh_manageapp_search_results( $db_type, $where, $centre_id );
 
 		$form['out'] = array('#markup' => $out, '#weight' => 100 );
 		return $form;
@@ -1018,13 +989,9 @@ function dh_manageapp_search_form($form, &$form_state)
 
 		$max_old_courses =  date('Y-m-d',strtotime("-".variable_get('max_old_courses', '6 month')));
 		$centre_append = '';
-		//$max_old_courses='2017-01-01';
 		if ( $centre_id <> '' )
 			$centre_append = ' and c_center='.$centre_id.' ';
 		$q = "select c_id, c_name from dh_course where c_start >= '$max_old_courses' $centre_append and c_deleted=0 order by c_start desc";
-		
-		drupal_set_message($q);
-		
 		$courses = db_query($q)->fetchAllKeyed();
 		$courses[''] = 'Choose';
 
@@ -1048,7 +1015,7 @@ function dh_manageapp_search_form($form, &$form_state)
 			$form['a'] = array('#markup' => '<h3>'.$breadcrumb.'</h3>');
 		$form['#attributes'] = array('class' => array('container-inline')); 
 		$form['course'] = array('#title' => 'Course', '#type' => 'select', '#options' => $courses, '#weight' => 1);
-		//$form['db_type'] = array('#title' => 'DB Type', '#type' => 'radios','#attributes' => array('class' => array('search_db_type')), '#options' => array('s' => 'Student', 'a' => 'Applicant' ), '#default_value' => 'a',  '#weight' => 2);
+		/*$form['db_type'] = array('#title' => 'DB Type', '#type' => 'radios', '#options' => array('s' => 'Student', 'a' => 'Applicant' ), '#default_value' => 'a',  '#weight' => 2);*/
 		$form['f_name'] = array('#title' => 'First Name', '#type' => 'textfield', '#weight' => 3);
 		$form['l_name'] = array('#title' => 'Last Name', '#type' => 'textfield', '#weight' => 4 );
 		$form['conf_no'] = array('#title' => 'Confirmation No', '#type' => 'textfield', '#size' => 15, '#weight' => 5 );
@@ -1106,46 +1073,6 @@ function dh_manageapp_search_form($form, &$form_state)
 				$(document).ready(function(){
 					$("#edit-course").select2();
 					$("#edit-country").select2();
-					
-					$(".search_db_type").click(function(){
-						
-			            if ($(this).is(\':checked\'))
-    					{
-      						var db_type=$(this).val();
-      						if(db_type == "s")
-      						{
-      							
-      							$(".form-item-status").hide();
-      							$(".form-item-type").hide();
-      							$(".form-item-letters").hide();
-      							// $(".form-item-conf-no").hide();
-      							$(".form-item-mode").hide();
-      							$(".form-item-alist").hide();
-								$(".form-item-is-at").hide();
-								$(".form-item-is-foreign").hide();
-								$(".form-item-is-willing-to-serve").hide();
-								$(".form-item-is-pregnant").hide();
-							
-      						}
-      						if(db_type == "a")
-      						{
-      							$(".form-item-status").show();
-      							$(".form-item-type").show();
-      							$(".form-item-letters").show();
-      							// $(".form-item-conf-no").show();
-      							$(".form-item-mode").show();
-      							
-      							$(".form-item-alist").show();
-								$(".form-item-is-at").show();
-								$(".form-item-is-foreign").show();
-								$(".form-item-is-willing-to-serve").show();
-								$(".form-item-is-pregnant").show();
-
-      						}
-
-    					}				
-	        		});
-
 				});
 			})(jQuery);
 		';
@@ -1183,596 +1110,4 @@ function dh_manageapp_search_form_submit($form, &$form_state)
 	$form_state['rebuild'] = TRUE;
 //	drupal_goto("donation-report-results", array('query' => $data));
 }
-
-
-
-
-
-
-
-
-function dh_manageapp_search_student_results( $type, $where, $centre )
-{
-
-
-	// $type='s';
-	//$where='sc_center=1 and sc_course=1'; 
-	global $user;
-  	$_SESSION['lasturi'] = $_SERVER['REQUEST_URI'];
-	//drupal_add_js(drupal_get_path('module', 'dh_manageapp').'/datatables.min.js' );
-	//drupal_add_css(drupal_get_path('module', 'dh_manageapp').'/datatables.min.css' );
-	$iPod    = stripos($_SERVER['HTTP_USER_AGENT'],"iPod");
-	$iPhone  = stripos($_SERVER['HTTP_USER_AGENT'],"iPhone");
-	$iPad    = stripos($_SERVER['HTTP_USER_AGENT'],"iPad");
-	drupal_add_css( libraries_get_path("editor"). "/DataTables/datatables.min.css");
-	drupal_add_js( libraries_get_path("editor").  "/DataTables/datatables.min.js");
-	drupal_add_js(drupal_get_path('module', 'dh_manageapp').'/js/location-common.js');
-	if ( !($iPad || $iPhone || $iPod) )
-	{
-		//drupal_add_js( libraries_get_path("editor").  "/DataTables/Buttons-1.5.1/js/buttons.html5.min.js");
-		drupal_add_js( libraries_get_path("editor").  "/DataTables/Buttons-1.5.1/js/buttons.print.min.js");
-	}
-
-	drupal_add_css( drupal_get_path('module', 'dh_manageapp'). "/css/jquery-confirm.min.css");
-	drupal_add_js( drupal_get_path('module', 'dh_manageapp'). "/js/jquery-confirm.min.js");
-	
-	drupal_add_css(drupal_get_path('module', 'dh_manageapp').'/css/tables.css' );
-	$q = "select td_key, td_val1 from dh_type_detail where td_type='COURSE-SYSTEM-STATUS'";
-	$system_statues = db_query($q)->fetchAllKeyed();
-
-	$q = "select td_key, td_key from dh_type_detail where td_type='COURSE-STATUS'";
-	$statuses = db_query($q)->fetchAllKeyed();
-	$statuses[''] = 'Choose';
-	$statuses[$system_statues['STATUS-CONFIRMED']] = $system_statues['STATUS-CONFIRMED'];
-	$statuses[$system_statues['STATUS-CANCELLED']] = $system_statues['STATUS-CANCELLED'];
-	//$statuses[$system_statues['STATUS-ATTENDED']] = $system_statues['STATUS-ATTENDED'];
-	$statuses[$system_statues['STATUS-CUSTOM']] = $system_statues['STATUS-CUSTOM'];
-
-	$letters = array();
-	$q = "select l_id, l_event, l_name from dh_letter where l_center=$centre and l_deleted=0 order by l_event, l_name";
-	$letter_res = db_query($q);
-	while( $l = $letter_res->fetchAssoc())
-	{
-		$letters[$l['l_event']][] = array('id' => $l['l_id'], 'status' => $l['l_name']);
-	}
-	$letters_json = json_encode($letters);
-
-	$courses = array(); $today = date('Y-m-d',strtotime("-1 month"));
-	$q = "select c_id, c_name from dh_course where c_center=$centre and c_start >= '$today' and c_deleted=0 order by c_start";
-	$q = "select c_id, c_name from dh_course where c_center=$centre  and c_deleted=0 order by c_start";
-	$courses = db_query($q)->fetchAllKeyed();
-	$courses_j = array();
-	foreach( $courses as $k => $v)
-		$courses_j[] = array('id' => $k, 'name' => $v);
-	$courses_json = json_encode($courses_j);
-
-	$centres = array();
-
-	if ( user_access('access other center courses') )
-		$q = "select c_id, c_name from dh_center order by c_name";		
-	else
-		$q = "Select c_id, c_name from dh_center left join dh_user_center uc on c_id=uc_center where uc_user='".$user->uid." and uc_deleted=0' order by 	c_name";
-
-	$centres = db_query($q)->fetchAllKeyed();
-
-	$centres_j = array();
-	foreach( $centres as $k => $v)
-		$centres_j[] = array('id' => $k, 'name' => $v);
-	$centres_json = json_encode($centres_j);
-
-	$pagination = db_query("select cs_pagination from dh_center_setting where cs_center=$centre")->fetchField();
-	if ($pagination == '')
-		$pagination = 'bottom';
-	switch ($pagination) {
-		case 'top':
-			$page_dom = 'lBfr<\"clear\"p>ti';
-			break;
-		case 'both':
-			$page_dom = 'lBfr<\"clear\"p>tip';
-			break;
-		default:
-			$page_dom = 'lBfrtip';
-			break;
-	}
-
-	// if ( $type == 'applicant')
-	// 	$q = "select c.c_finalized, a_id, a_type, a_center, a_course, a_conf_no as 'ConfNo', concat(a_f_name, ' ',a_m_name, ' ',a_l_name) as 'Full Name', a_gender, a_status, ci.c_name as 'City', s.s_name, co.c_name as 'Country', a_city_str, c.c_name, a_address, a_zip, a_email, a_phone_home, a_phone_office, a_phone_mobile, a_education, a_occupation, a_occupation_past, a_company, a_designation, a_department, a_alist, a_monk, a_uri, a_photo, TIMESTAMPDIFF( YEAR, a_dob, CURDATE() ) as 'Age', a_lang_1,a_lang_2, a_lang_3, a_langs, a_old, a_attended, a_internal_note, a_willing_to_serve, a_extra, a_referral, c.c_end, ac_teen, ac_10d, ac_stp, ac_spl, ac_20d, ac_30d, ac_45d, ac_60d, ac_tsc, ac_teacher,ac_service, aa_left_comment, CONCAT( IFNULL(ac_first_year, ''),'-',IFNULL(ac_first_month, ''),'-',IFNULL(ac_first_day, ''), ', ', ac_first_location_str) as 'first_course', CONCAT( IFNULL(ac_last_year,''),'-',IFNULL(ac_last_month,''),'-',IFNULL(ac_last_day, ''), ', ', ac_last_location_str) as 'last_course', ac_practice_details,  ae_desc_physical,  ae_desc_medication,  ae_desc_mental, ae_desc_other_technique, ae_desc_addiction_current, ae_pregnant, ae_pregnant_detail, ae_father, ae_mother, ae_parent_course, ae_teen_std from dh_applicant left join dh_applicant_course ac on (a_id=ac_applicant)  left join dh_applicant_attended aa on (a_id=aa_applicant) left join dh_applicant_extra ae on (a_id=ae_applicant) left join dh_course c on (a_course=c.c_id) left join dh_country co on (a_country=co.c_code) left join dh_city ci on a_city=ci.c_id left join dh_state s on (a_state=s.s_code and a_country=s.s_country) left join dh_center ce on (a_center=ce.c_id)  where $where order by a_created,a_vray_id";
-	// else
-		$q = "select c.c_finalized, s.s_id as 'a_id', 'Student' as 'a_type', sc_course as 'a_center', sc_course as 'a_course', sc_conf_no as 'ConfNo', concat(s_f_name, ' ',s_l_name) as 'Full Name', s_gender as 'a_gender', 'Attended' as 'a_status', ci.c_name as 'City', st.s_name, co.c_name as 'Country', '' as 'a_city_str', c.c_name, s_address as 'a_address', s_zip as 'a_zip', s_email as  'a_email', s_phone_home as  'a_phone_home',s_phone_office as 'a_phone_office',s_phone_mobile as 'a_phone_mobile',s_education as 'a_education',s_occupation as 'a_occupation',s_occupation_past as 'a_occupation_past',s_company as 'a_company', s_designation as 'a_designation', s_department as 'a_department',s_alist as  'a_alist', s_monk as 'a_monk', s_photo as 'a_photo', TIMESTAMPDIFF( YEAR, s_dob, CURDATE() ) as 'Age', s_lang_1 as 'a_lang_1', s_lang_2 as 'a_lang_2', s_lang_3 as  'a_lang_3', s_langs as 'a_langs', 1 as 'a_old', 1 as 'a_attended','' as a_internal_note,'No' as a_willing_to_serve,'' as a_extra,0 as a_referral, c.c_end, sci_teen as 'ac_teen',sci_10d as 'ac_10d', sci_stp as 'ac_stp', sci_spl as 'ac_spl', sci_20d as  'ac_20d',sci_30d as  'ac_30d', sci_45d as  'ac_45d', sci_60d as 'ac_60d', sci_tsc as 'ac_tsc', sci_teacher as 'ac_teacher','' as ac_service, '' as aa_left_comment, CONCAT( IFNULL(sci_first_year, ''),'-',IFNULL(sci_first_month, ''),'-',IFNULL(sci_first_day, ''), ', ', sci_first_location_str) as 'first_course', '' as 'ac_practice_details', sc_desc_physical as 'ae_desc_physical', sc_desc_medication  as 'ae_desc_medication',  sc_desc_mental as 'ae_desc_mental', sc_desc_other_technique as 'ae_desc_other_technique', sc_addiction_current 'ae_desc_addiction_current', '' as 'ae_pregnant', '' as 'ae_pregnant_detail', sc_uri as 'a_uri' from dh_student s left join dh_student_course sc on (s.s_id=sc_student) left join dh_student_course_input sci on (s.s_id=sci_student) left join dh_course c on (sc_course=c.c_id) left join dh_country co on (s.s_country=co.c_code) left join dh_city ci on s_city=ci.c_id left join dh_state st on (s.s_state=st.s_code and s.s_country=st.s_country)  where $where group by s.s_id order by s_f_name";
-
-
-		if ($user->uid == 1)
-		{
-			drupal_set_message($q);
-		}
-		$result = db_query($q);
-		$rows = array();
-		while( $r = $result->fetchAssoc() )
-		{
-			unset($rs);
-			if (!isset($r['last_course']))
-				$r['last_course'] = '';
-			$pdf_link = '';
-			$rs['allowtransfer'] = 1;
-			$rs['type'] = strtolower($r['a_type']);
-			$rs['gender'] = (strtoupper($r['a_gender'])=='M')?'Male':'Female';
-			$rs['o_n'] = $r['a_old']?"Old":"New";
-			$rs['o_n'] .= '<br>'.$rs['gender'];
-			$rs['courseid'] = $r['a_course'];
-			$rs['centreid'] = $r['a_center'];
-			$rs['finalized'] = $r['c_finalized']?1:0;
-			if ( $r['a_attended'] || ($r['a_status'] == $system_statues['STATUS-LEFT'] ))
-				$rs['allowtransfer'] = 0;
-			if (date('Y-m-d') > $r['c_end'])
-				$rs['allowtransfer'] = 0;
-			if ( $r['a_uri'] <> '' )
-				$pdf_link = '&nbsp;('.l("PDF", file_create_url($r['a_uri']), array('attributes' => array("target" => "_blank") ) ).')';
-			$rs['aid'] = $r['a_id'];
-			$rs['changestatus'] = '' ;
-			$rs['name'] = _ma_make_link($r['Full Name'],'app/'.$r['a_id'].'/edit').$pdf_link;
-			if ($rs['type'] == 'sevak')
-				$rs['name'] .= ' (Sevak)';
-			if ($r['ac_teacher'] == 1)
-				$rs['name'] .= ' (AT)';
-			if ( in_array($r['ConfNo'], array('NF', 'OF', 'NF0', 'OF0')) )
-				$r['ConfNo'] = '';
-			$temp = explode(" / ", $r['c_name']); unset($temp[0]);
-			$rs['course'] = implode(" / ", $temp);
-			$rs['status'] = $r['a_status'].($r['ConfNo']?" (".$r['ConfNo'].")":"");
-			$rs['confno'] = $r['ConfNo'];
-			if ($r['City'] == '')
-				$r['City'] = $r['a_city_str'];
-			$rs['location'] =  $r['City'].', '.$r['s_name'].', '.$r['Country'];
-			$rs['city'] = $r['City'];
-			$rs['state'] = $r['s_name'];
-			$rs['country'] = $r['Country'];
-			$rs['pin'] = $r['a_zip'];
-			$rs['age'] = $r['Age'];
-			$rs['address'] = $r['a_address'];//." - ".$r['a_zip'];			
-			$rs['contact'] = '<label>H:&nbsp;</label>'.$r['a_phone_home']." <label>M:&nbsp;</label>".$r['a_phone_mobile']." <label>O:&nbsp;</label>".$r['a_phone_office']." <label>Email:&nbsp;</label>".$r['a_email'];
-			$rs['contact_home'] = $r['a_phone_home'];
-			$rs['contact_mobile'] = $r['a_phone_mobile'];
-			$rs['contact_office'] = $r['a_phone_office'];
-			$rs['contact_email'] = $r['a_email'];
-			$rs['occupation'] = $r['a_occupation'];
-			$rs['designation'] = $r['a_designation'];
-			$rs['company'] = $r['a_company'];
-			$rs['note'] = $r['a_internal_note']; //missing
-			$rs['willingtoserve'] = $r['a_willing_to_serve']?"Yes":"No"; //missing
-			$rs['extra'] = $r['a_extra']; //missing
-			$rs['monk'] = $r['a_monk'];
-			$rs['physical'] = $r['ae_desc_physical']?$r['ae_desc_physical']:"";
-			$rs['mental'] = $r['ae_desc_mental']?$r['ae_desc_mental']:"";
-			$rs['medication'] = $r['ae_desc_medication']?$r['ae_desc_medication']:"";
-			$rs['addiction'] = $r['ae_desc_addiction_current']?$r['ae_desc_addiction_current']:"";
-			$rs['othertechnique'] = $r['ae_desc_other_technique']?$r['ae_desc_other_technique']:"";
-			$rs['pregnant'] = $r['ae_pregnant']?'Yes':'No';
-			if ($r['ae_pregnant'] && ( ! in_array(strtolower($r['ae_pregnant_detail']), array("-", "no")) ) )
-				$rs['pregnant'] .= '&nbsp;( '.$r['ae_pregnant_detail'].' months )';
-
-			$temp = "";
-			$rs['eocd'] = $r['a_education']." / ".$r['a_occupation']." / ".$r['a_designation']." / ".$r['a_company'].'<div class="amcha-small">'.$rs['course'].'</div><br>'.($rs['physical']?'<div class="blue">Phy</div>&nbsp;|&nbsp;':"").($rs['mental']?'<div class="red">Mental</div>&nbsp;|&nbsp;':"").($rs['addiction']?'<div class="green">Intox</div>&nbsp;|&nbsp;':"").($rs['othertechnique']?'<div class="purple">Oth-Med</div>&nbsp;|&nbsp;':"").($r['ae_pregnant']?'<div class="pink">Preg</div>&nbsp;|&nbsp;':"").($r['a_alist']?'<div class="black">A-List</div>&nbsp;|&nbsp;':"").($r['a_monk']?'<div class="ochre">Monk</div>':"");
-
-
-			$rs['course_teen'] = $r['ac_teen']?$r['ac_teen']:"0";
-			$rs['course_10d'] = $r['ac_10d']?$r['ac_10d']:"0";
-			$rs['course_stp'] = $r['ac_stp']?$r['ac_stp']:"0";
-			$rs['course_spl'] = $r['ac_spl']?$r['ac_spl']:"0";
-			$rs['course_20d'] = $r['ac_20d']?$r['ac_20d']:"0";
-			$rs['course_30d'] = $r['ac_30d']?$r['ac_30d']:"0";
-			$rs['course_45d'] = $r['ac_45d']?$r['ac_45d']:"0";
-			$rs['course_60d'] = $r['ac_60d']?$r['ac_60d']:"0";
-			$rs['course_tsc'] = $r['ac_tsc']?$r['ac_tsc']:"0";
-			$rs['course_seva'] = $r['ac_service']?$r['ac_service']:"0";
-			$rs['left_reason'] = $r['aa_left_comment'];
-			
-			$rs['first_course'] = $rs['last_course'] = '';
-			if ($r['a_old'])
-			{
-				$rs['course_others'] = $r['ac_stp']+$r['ac_spl']+$r['ac_20d']+$r['ac_30d']+$r['ac_45d']+$r['ac_60d']+$r['ac_tsc'];
-				if($r['first_course'] === NULL){
-					$r['first_course'] ='';
-				}
-				$rs['first_course'] = $r['first_course'] ;
-				$rs['last_course'] = $r['last_course'];
-				$rs['practice_details'] = $r['ac_practice_details'];
-			}
-			else
-				$rs['course_others'] = "0";
-			$rs['Education'] = $r['a_education'];
-			$rs['Company'] = $r['a_company'];
-			$rs['Dept'] = $r['a_department'];
-			$rs['Occ'] = $r['a_occupation'];
-			if ($r['a_occupation'] == '')
-				$rs['Occ'] = $r['a_occupation_past'];
-			$rs['Designation'] = $r['a_designation'];
-			$rs['lang'] = trim($r['a_lang_1']." ".$r['a_lang_2']. " ".$r['a_lang_3']." ".$r['a_langs']);
-			$rs['alist'] = $r['a_alist'];
-			
-			$rs['photo'] = '';
-			if ( $r['a_photo'] <> '')
-				$rs['photo'] = file_create_url($r['a_photo']);
-			$rs['referral'] = $r['a_referral']?1:0;
-			if ($r['a_referral'])
-			{
-				$q = "select r.*, r_listed_by as 'ListedBy' from dh_referral r where r_id=".$r['a_referral'];
-				$r_ref = db_query($q)->fetchAssoc();
-
-				$rs['ref_reason'] = $r_ref['r_reason'];
-				$rs['ref_start'] = $r_ref['r_start'];
-				$rs['ref_end'] = $r_ref['r_end'];
-				$rs['ref_listed_by'] = $r_ref['ListedBy'];
-				$listed_for = "";
-				$temp = array('10d', 'stp', 'spl', '20d', '30d', '45d', '60d', 'tsc', '10d_seva', 'lc_seva', 'longseva');
-				foreach( $temp as $a )
-					if ($r_ref['r_listed_'.$a])
-						$listed_for .= strtoupper($a)." | ";
-				$rs['ref_listed_for'] = $listed_for;
-				
-			}
-
-			//$rows[] = array_values($rs);
-			$rows[] = $rs;
-	}
-	//$header = array('Detail', 'Applicant Name', 'Course Name', 'Status', 'ConfNo' , 'Gender', 'Country/State/City', 'Age');
-	$header = array();
-	$attributes = array('id' => 'table-applicants');
-	$out = theme('table', array('header' => $header, 'rows' => array(), 'attributes' => $attributes));
-	$data = json_encode($rows);
-	$status_action = 'return "No access";';
-	$action = 'return "No access"';
-	$status_action = 'return ""';
-	$action = 'return ""';
-
-
-	$button_access = '';
-	if (user_access('export data'))
-		if ( !($iPad || $iPhone || $iPod) )
-			$button_access = '                        
-				$.extend( true, {}, buttonCommon, {
-      			    extend: "excelHtml5",
-	            	title: "Student Data"
-				} )
-			';
-
-	//$allow_other_centers = user_access('access other center courses')?1:0; 
-
-
-	//$out .= '<div id="replace-me"></div>';
-	$js = '
-		function format ( d ) {
-			var pregnant = "", photo = "", referral = "", left_reason = "";
-			
-			if (d.gender == "Female")
-			{
- 			    pregnant =   "<label>Pregnant:</label>"+
-		                "<br>"+d.pregnant;
-			}
-			if ( d.photo )
-			{
-				photo = "<td rowspan=3><img width=\"150\" src=\""+d.photo+"\" /></td>";
-			}
-			if ( d.left_reason )
-			{
-				left_reason = "<td><label>Left Reason:</label><br>"+d.left_reason+"</td>";
-			}
-			if ( parseInt(d.referral) > 0  )
-			{
-				referral = "<tr><td class=\"referral\"><label>RefListed by:</label></td><td class=\"referral\">"+d.ref_listed_by+"</td>"+
-					"<td class=\"referral\"><label>From:</label></td><td class=\"referral\">"+d.ref_start+"</td>"+
-					"<td class=\"referral\"><label>To:</label></td><td class=\"referral\">"+d.ref_end+"</td></tr>"+
-					"<tr><td class=\"referral\"><label>Reason:</label></td><td class=\"referral\">"+d.ref_reason+"</td>"+
-					"<td class=\"referral\"><label>Listed For:</label></td><td class=\"referral\" colspan=\"3\">"+d.ref_listed_for+"</td></tr>";
-			}
-		    return "<div class=\"slider\">"+
-		        "<table cellpadding=\"5\" cellspacing=\"0\" border=\"0\" style=\"padding-left:50px;\">"+
-		            "<tr>"+
-		            "<td colspan=6><div class=\"clarification-response-"+d.aid+"\"></div></td>"+
-		            "</tr>"+ referral +
-		            "<tr>"+
-		                "<td colspan=\"5\">"+d.address+", "+d.location+" / "+d.contact+"</td>"+
-		             "</tr>"+
-		            "<tr>"+
-			            "<td><label>Courses:</label>"+
-		                "<table><tr><td>Teen</td><td>10d</td><td>STP</td><td>SPL</td><td>TSC</td><td>20d</td><td>30d</td><td>45d</td><td>60d</td><td>Seva</td></tr>"+
-		                "<tr><td>"+d.course_teen+"</td><td>"+d.course_10d+"</td><td>"+d.course_stp+"</td><td>"+d.course_spl+"</td><td>"+d.course_tsc+"</td><td>"+d.course_20d+"</td><td>"+d.course_30d+"</td><td>"+d.course_45d+"</td><td>"+d.course_60d+"</td><td>"+d.course_seva+"</td></tr></table></td>"+
-		                "<td><label>Details:</label>"+
-		                "<br>First: "+d.first_course+", Last: "+d.last_course+"</td>"+
-		                "<td><label>Practice Details:</label>"+ 
-		                "<br>"+d.practice_details+"</td>"+ photo +
-		            "</tr>"+
-		            "<tr>"+
-		                "<td><label>Physical:</label>"+
-		                "&nbsp;"+d.physical+"</td>"+			            			                			            	
-		                "<td><label>Other Techniques:</label>"+
-		                "<br>"+d.othertechnique+"</td>"+			            	
-		                "<td><label>Dept:</label>"+
-		                "<br>"+d.Dept+"</td>"+
-		            "</tr>"+
-		            "<tr>"+
-		            	"<td><label>Mental:</label>"+
-		                "&nbsp;"+d.mental+"</td>"+
- 			            "<td><label>Medication:</label>"+
-		                "<br>"+d.medication+"</td>"+			            	
- 			            "<td><label>Intoxicants:</label>"+
-		                "<br>"+d.addiction+"</td>" + left_reason + 
-		            "</tr>"+
-		            "<tr>"+
-			            "<td><label>Internal Note:</label>"+
-			            "&nbsp;"+d.note+"</td>"+
-	 				    "<td><label>Other Info:</label>"+
-	 				    "<br>"+d.extra+"</td>"+
-	 				    "<td><label>Willing to Serve:</label>"+
-	 				    "<br>"+d.willingtoserve+"</td>"+ 
-			            "<td><label>Langs:</label>"+
-			            "<br>"+d.lang +"</td>" + "<td>" + pregnant + "</td>" +      		                
- 		            "</tr>"+
- 		            "<tr>"+
-		            "<td colspan=6><div class=\"applied-courses-"+d.aid+"\">Loading Course Data...</div></td>"+
-		            "</tr>"+
-		            "<tr>"+
-		            "<td colspan=6><div class=\"activity-log-"+d.aid+"\">Loading Activity Log...</div></td>"+
-		            "</tr>"+
-		        "</table>"+
-		    "</div>";
-		}
-
-		(function ($) {
-			$(document).ready(function(){
-				var dataset = '.$data.';
-				var letters = '.$letters_json.';				
-				var courses = '.$courses_json.';
-				var centres = '.$centres_json.';
-
-				console.log(dataset)
-				var comment = "";			
-
-			    var buttonCommon = {
-			        exportOptions: {
-			            format: {
-			            	header: function( data, column, node ) {
-			            		var h = ["Name", "Gender", "Age", "Courses", "PhoneMobile", "PhoneHome", "PhoneOffice", "Email", "Education", "Occupation", "Company", "Designation/Dept", "Address", "Pin", "City", "State","Country", ""]; 
-			            		return h[column];
-			            	},
-			                body: function ( data, row, column, node ) {
-			                	var tmp = table.rows().data();
-			                	var a;
-			                	if ( column == 0 )
-			                	{
-			                		a = jQuery("<span>").html(tmp[ row ].name).text();
-			                		a = a.replace("(PDF)", "");
-			                		return a;
-			                	}
-			                	else if ( column == 1 )
-			                	{
-			                		return tmp[ row ].gender; 
-			                	}
-			                	else if ( column == 2 )
-			                	{
-			                		return tmp[ row ].age; 
-			                	}
-			                	else if ( column == 3 )
-			                	{
-			                		a = "S: "+(+tmp[ row ].course_10d + +tmp[ row ].course_teen + +tmp[ row ].course_stp)+" L: "+(+tmp[ row ].course_20d + +tmp[ row ].course_30d + +tmp[ row ].course_45d + +tmp[ row ].course_60d + +tmp[ row ].course_spl + +tmp[ row ].course_tsc )+ " Seva: "+ tmp[ row ].course_seva; 
-			                		return a; 
-			                	}
-			                	else if ( column == 4 )
-			                	{
-			                		return tmp[ row ].contact_mobile; 
-			                	}
-			                	else if ( column == 5 )
-			                	{
-			                		return tmp[ row ].contact_home; 
-			                	}
-			                	else if ( column == 6 )
-			                	{
-			                		return tmp[ row ].contact_office; 
-			                	}
-			                	else if ( column == 7 )
-			                	{
-			                		return tmp[ row ].contact_email; 
-			                	}
-			                	else if ( column == 8 )
-			                	{
-			                		return tmp[ row ].Education; 
-			                	}
-			                	else if ( column == 9 )
-			                	{
-			                		return tmp[ row ].Occ; 
-			                	}
-			                	else if ( column == 10 )
-			                	{
-			                		return tmp[ row ].Company; 
-			                	}
-			                	else if ( column == 11 )
-			                	{
-			                		return tmp[ row ].Designation + " / " + tmp[ row ].Dept; 
-			                	}
-			                	else if ( column == 12 )
-			                	{
-			                		return tmp[ row ].address; 
-			                	}
-			                	else if ( column == 13 )
-			                	{
-			                		return tmp[ row ].pin; 
-			                	}
-			                	else if ( column == 14 )
-			                	{
-			                		return tmp[ row ].city; 
-			                	}
-			                	else if ( column == 15 )
-			                	{
-			                		return tmp[ row ].state; 
-			                	}
-			                	else if (column == 16) {
-			                		return tmp[ row ].country; 
-			                	}
-			                	return data;
-			                }
-			            }
-			        }
-			    };
-
-
-			    var iOS = !!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform);
-
-				var table = $("#table-applicants").DataTable({
-					dom: "'.$page_dom.'",  /*lBfr<\"clear\"p>tip*/
-					data: dataset,
-					"columnDefs": [
-					            {
-					                "targets": [ 6,7,8, 9, 10, 11, 12, 13, 14, 15, 16 ],
-					                "visible": false,
-					                "searchable": false
-					            }
-			        ],					
-			        columns: [
-			            {
-			                "class":          "details-control",
-			                "orderable":      false,
-			                "data":           null,
-			                "title":		  "Detail",
-			                "defaultContent": ""
-			            },				        
-			            { data: "name", "title" : "Applicant Name" },
-			            { data: "eocd", "title" : "Edu/Occ/Comp/Desig" },
-			            { data: "status", "title" : "Status" },
-			            { data: "o_n", "title" : "Type" },
-				        { data: "age", "title" : "Age"},
-				        { data: null, "title" : ""},
-				        { data: null, "title": "" },
-				        { data: null, "title": "" },
-				        { data: null, "title": "" },
-				        { data: null, "title": "" },
-				        { data: null, "title": "" },
-				        { data: null, "title": "" },
-				        { data: null, "title": "" },
-				        { data: null, "title": "" },
-				        { data: null, "title": "" },
-				        { data: null, "title": "" },
-		            ],
-		            "fnRowCallback": function (nrow, data, display_index) {
-		            	if (parseInt(data.referral) > 0 )
-		            	{
- 					   		$(nrow).addClass("referral");
-		            	}
-					},
-                  	/*buttons: ["copy","csv","excel","pdf","print"], */ 
-					buttons:   [  
-						'.$button_access.'                        
-			         ]                  	
-				});
-
-			    // Add event listener for opening and closing details
-			    $("#table-applicants tbody").on("click", "td.details-control", function () {
-			        var tr = $(this).closest("tr");
-			        var row = table.row( tr );
-			 
-			        if ( row.child.isShown() ) {
-			            // This row is already open - close it
-			            $("div.slider", row.child()).slideUp( function () {
-			                row.child.hide();
-			                tr.removeClass("shown");
-			            });
-			        }
-			        else {
-			            // Open this row
-			            row.child( format(row.data()), "no-padding" ).show();
-			            tr.addClass("shown");
-			 
-			            $("div.slider", row.child()).slideDown();
-		            	$(".clarification-response-"+row.data().aid).load("/app-student-clarifications/"+row.data().aid);
-		            	$(".applied-courses-"+row.data().aid).load("/app-student-courses/"+row.data().aid);
-		            	$(".activity-log-"+row.data().aid).load("/app-student-activity/"+row.data().aid);			            	
-			        }
-			    });
-
-
-
-
-
-				
-				function app_del( s )
-				{
-			        var tr = $(s).closest("tr");
-			        var row = table.row( tr );
-			        var id = row.data().aid;
-					var r = confirm("Are you sure you want to delete applicant "+$("<div/>").html(row.data().name).text()+" ?");
-					if (r == true)
-					{
-       					$(tr).loading();
-						$.getJSON( "/app/"+id+"/delete", {} )
-						  .done(function( json ) {
-						  	if (json.status == "OK")
-						  	{
-						  		//row.delete();
-								tr.css("background-color", "#ff0000");						  		
-						  	}
-						  	else
-						  		alert("Update failed "+json.msg);
-						  	$(tr).loading("stop");
-						  	//row.remove();
-						  })
-						  .fail(function( jqxhr, textStatus, error ) {
-						    var err = textStatus + ", " + error;
-						    alert("Error updating "+err);
-						    $(tr).loading("stop");
-						});			
-					}
-
-				}
-				function add_referral( s )
-				{
-			        var tr = $(s).closest("tr");
-			        var row = table.row( tr );
-			        var id = row.data().aid;
-					
-					window.location.href = "/referral/'.arg(1).'/add?aid="+id;					
-				}
-
-				$(document).on("change", "#centre-select", function(){
-
-					  ///alert("I am called");
-					$.getJSON( "/get-courses/"+$(this).val(), {} )
-					  .done(function( courses ) {
-					        $(".course-select").empty();
-					        var i = 0;
-					        for(l = courses.length; i < l; i++) 
-					        {
-					        	$(".course-select").append($("<option>", { value : courses[i].id }).text( courses[i].name ));
-					        }
-
-					  })
-					  .fail(function( jqxhr, textStatus, error ) {
-					    var err = textStatus + ", " + error;
-					    alert("Error getting courses "+err);
-					  });			
-				});
-
-				//$("#table-applicants tbody").on("click", ".course-transfer,.applicant-add", function() {
-
-			});
-
-		})(jQuery);
-
-	';
-	drupal_add_js($js, 'inline');	
-	return $out;
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

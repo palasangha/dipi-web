@@ -114,6 +114,7 @@ function dh_letters_form($form, &$form_state, $edit_data = array())
 	$statuses[''] = 'Choose';
 	$statuses[$system_statuses['STATUS-CONFIRMED']] = $system_statuses['STATUS-CONFIRMED'];
 	$statuses[$system_statuses['STATUS-CANCELLED']] = $system_statuses['STATUS-CANCELLED'];
+	$statuses[$system_statuses['STATUS-RECONFIRMATION']] = $system_statuses['STATUS-RECONFIRMATION'];
 	$statuses[$system_statuses['STATUS-RECEIVED']] = $system_statuses['STATUS-RECEIVED'];
 	$statuses[$system_statuses['STATUS-LEFT']] = $system_statuses['STATUS-LEFT'];
 	$statuses[$system_statuses['STATUS-CLARIFICATIONRESPONSE']] = $system_statuses['STATUS-CLARIFICATIONRESPONSE'];	
@@ -417,6 +418,7 @@ function dh_get_letter($type, $id, $event, $letter_id = 0, $comment = '')
 	$search['[FirstName]'] 		= $row['a_f_name'];
 	$search['[MiddleName]'] 	= $row['a_m_name'];
 	$search['[LastName]'] 		= $row['a_l_name'];
+	$search['[RegisteredMobile]'] = $row['a_phone_mobile'];
 	$search['[Applicantadd]'] 	= $row['a_address'];
 	$search['[ApplicantCity]'] 	= $row['a_city'];
 	$search['[ApplicantCountry]']= $row['a_country'];
@@ -442,7 +444,7 @@ function dh_get_letter($type, $id, $event, $letter_id = 0, $comment = '')
 	$search['[CentreFax]']	 	= $row['c_fax'];
 	$search['[CentreEmail]'] 	= $row['c_email'];
 	$search['[CentreUrl]'] 		= $row['c_url'];
-	$search['[Applicant_id]'] 	= $row['a_id'];
+	$search['[ApplicantID]'] 	= $row['a_id'];
 	$search['[ConfirmationNo]'] = $row['a_conf_no'];
 	$search['[ApplicantType]']  = $row['a_type'];
 	$search['[UserInput]'] 		= $comment;
@@ -605,9 +607,14 @@ function dh_send_letter($type, $id, $event, $letter_id = 0, $comment = '')
 		if ($sms_body <> '' )
 		{
 			$sms_url = str_replace(array('%phone', '%data'), array($row['a_phone_mobile'], urlencode($sms_body)), $sms_url );
+			//$result = send_sms_textlocal($row['a_phone_mobile'], $sms_body );
+		    //$result = json_decode($result); 
+      		//watchdog('SMS', 'Textlocal sending letter'. print_r($result, true));
+
 			//watchdog('SMS', $sms_body);
 			//http://bhashsms.com/api/sendmsg.php?user=success&pass=123456&sender=DHAMMA&phone=9003099142&text=TestSMS&priority=ndnd&stype=normal
 			$response = file_get_contents($sms_url);
+			//$response = $result["status"];
 			$log = "Letter sent (SMS) - ".$letter_name." ( Response: $response )";
 			logit($centre,  'Letter', $id, $log );
 		}
@@ -619,10 +626,10 @@ function dh_send_letter($type, $id, $event, $letter_id = 0, $comment = '')
 
 function _get_letter_fields( $centre )
 {
-	$FIELDS = array('[FirstName]', '[MiddleName]', '[LastName]', '[Applicantadd]', '[ApplicantCity]', '[ApplicantCountry]', 
+	$FIELDS = array('[FirstName]', '[MiddleName]', '[LastName]', '[RegisteredMobile]', '[Applicantadd]', '[ApplicantCity]', '[ApplicantCountry]', 
 		'[ApplicantState]', '[ApplicantPinCode]', '[ApplicantGender]', '[Age]', '[ApplicantEmail]', '[AuthLogin]', '[AuthCode]', '[ViewLink]', '[CourseName]',
 		'[StartDate]', '[EndDate]', '[CourseType]', '[CentreName]', '[CentreAdd]', '[CentreCity]', '[CentreState]', '[CentreCountry]', 
-		'[CentrePinCode]', '[CentrePhone]', '[CentreFax]', '[CentreEmail]', '[CentreUrl]', '[Applicant_id]', '[ConfirmationNo]', '[UserInput]', 
+		'[CentrePinCode]', '[CentrePhone]', '[CentreFax]', '[CentreEmail]', '[CentreUrl]', '[ApplicantID]', '[ConfirmationNo]', '[UserInput]', 
 		'[LetterDetailURL]', '[ApplicantType]', '[ATDetails]');
 
 	$q = "select lf_name from dh_letter_fields where lf_center = $centre  and lf_deleted =0  order by lf_name"; //(0, $centre)
